@@ -83,3 +83,34 @@ jobs:
           ATTEST_COMMENT: 'false'
           GITHUB_TOKEN: ${{ github.token }}
         run: node packages/action/src/run.mjs
+
+  web:
+    # The site has to pass its own scan, with every layer running. An
+    # accessibility tool shipping on an inaccessible site would refute its own
+    # argument, and this is the check that stops that happening quietly.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - name: Build the site
+        run: pnpm --filter @attestci/web build
+      - name: Scan the site, including the rendered pages
+        run: |
+          pnpm --filter @attestci/web start -- -p 3111 &
+          npx --yes wait-on -t 60000 http://127.0.0.1:3111/
+          node packages/cli/dist/bin.js scan apps/web --fail-on moderate \
+            --url http://127.0.0.1:3111/ \
+            --url http://127.0.0.1:3111/pricing \
+            --url http://127.0.0.1:3111/dashboard \
+            --url http://127.0.0.1:3111/scans \
+            --url http://127.0.0.1:3111/docs/what-attest-cannot-detect
