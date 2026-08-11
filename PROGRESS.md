@@ -14,7 +14,7 @@ deployed. Nothing is published to npm and nothing is running anywhere.
 | 0 — Foundation | **Done.** `pnpm check` green, `attest scan ./fixtures` reports |
 | 1 — Local CLI | **Done.** 30 rules, all with fixtures. Gate met — see below |
 | 2 — Action and distribution | **Built, not shipped.** Action and docs written; not published, 0 installs |
-| 3 — Hosted service | **Scaffolded.** Schema, API and dashboard written; not deployed |
+| 3 — Hosted service | **Scaffolded.** Schema, API and site written and tested; not deployed |
 | 4 — Autofix | Not started. Blocked on Phase 3 revenue, by design |
 
 ### Phase 1 gate: met
@@ -64,10 +64,21 @@ generated docs page. CI fails if any of those is missing or stale.
 - 8 privacy and placement rules
 - 2 client-impact rules, plus startup-JS measurement from Next.js build manifests
 
-**52 tests passing**, including the end-to-end suite that proves the diff is
-semantic: ten lines added above a finding report zero new findings.
+**69 tests passing**, including the end-to-end suite that proves the diff is
+semantic (ten lines added above a finding report zero new findings) and the
+evidence suite that proves a broken hash chain names the record that broke it.
 
 **Four CI gates**: build, claim check, tests, docs coverage.
+
+**The hosted service**: append-only Postgres schema with the constraint enforced
+by a database trigger, hash-chained records, Ed25519-signed exports verifiable
+without an account, and an accessibility statement generator that refuses to state
+a conformance level.
+
+**The site**: landing page, docs rendered from the repository's own markdown, the
+three public scan pages, and a dashboard. It passes its own scan with all four
+layers running — 14 runtime rules over 4 rendered pages, zero findings — and CI
+enforces that.
 
 **All GTM deliverables written**: positioning, three real public scan pages, launch
 drafts for five venues, four comparison pages, outreach templates, legal templates,
