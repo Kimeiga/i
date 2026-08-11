@@ -1,0 +1,11 @@
+Copyright (c) 2026 Attest. All rights reserved.
+
+The contents of this directory (apps/api and apps/web) are proprietary and are
+NOT covered by the MIT licence that applies to the packages/ directory.
+
+No licence is granted to use, copy, modify, or distribute this code.
+
+The open source parts of this project — the rule engine, every rule, the CLI and
+the GitHub Action — live under packages/ and are MIT licensed. Those are the
+whole tool. This directory is the hosted service around it: history, organisation
+policy, signed evidence exports, and accessibility statement generation.
