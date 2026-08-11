@@ -1,0 +1,23 @@
+{
+  "name": "@attestci/rules-privacy",
+  "version": "0.1.0",
+  "description": "Static analysis rules for privacy, placement and client-cost boundaries in React and Next.js codebases.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "engines": { "node": ">=22" },
+  "scripts": { "build": "tsc -b" },
+  "dependencies": {
+    "@attestci/core": "workspace:*",
+    "ts-morph": "^28.0.0"
+  },
+  "sideEffects": false
+}
