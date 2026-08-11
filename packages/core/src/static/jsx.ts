@@ -151,12 +151,19 @@ export function staticTextContent(node: Node): string | undefined {
   return dynamic ? undefined : ''
 }
 
-/** Direct and nested JSX tags inside an element, excluding the element itself. */
+/**
+ * JSX tags inside an element, at any depth, excluding the element's own tags.
+ *
+ * The exclusion matters: a `JsxElement`'s opening tag is one of its own
+ * descendants in the AST, so a rule asking "what is inside this button" would
+ * otherwise get the button back and conclude it contains a non-icon child.
+ */
 export function descendantTags(node: Node): JsxTag[] {
+  const own = Node.isJsxElement(node) ? node.getOpeningElement() : undefined
   return [
     ...node.getDescendantsOfKind(SyntaxKind.JsxOpeningElement),
     ...node.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement),
-  ].filter((t) => t !== node)
+  ].filter((t) => t !== node && t !== own)
 }
 
 export function locationOf(node: Node, rootDir: string): SourceLocation {
