@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+# Playwright browsers are large and only needed for runtime accessibility scans.
+# `attest scan` degrades gracefully to static analysis when they are absent, so
+# CI does not install them by default. See DECISIONS.md ADR-0009.
+onlyBuiltDependencies:
+  - esbuild

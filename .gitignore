@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.next/
+out/
+coverage/
+.env
+.env.local
+.env.*.local
+.DS_Store
+.attest/
+attest-report.json
+attest-report.sarif
+*.log
+.vitest-cache/
+apps/web/.vercel/
