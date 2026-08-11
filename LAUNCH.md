@@ -27,15 +27,22 @@ rather than the last thing written down.
 | --- | --- | --- |
 | Claim `@attestci` on npm | Nothing can be published without it | free |
 | Create the GitHub organisation | Marketplace paid plans require org ownership | free |
-| Buy the domain | `attest.ci` is a placeholder in `PRODUCT_URL`; every published docs link is dead until it resolves | ~$30–50/yr |
+| Buy the domain | `attest.ci` is a placeholder in `PRODUCT_URL`; every published docs link is dead until it resolves | **$9.99/yr** |
 | Create `attest-ci/attest-action` (empty) | The Marketplace only lists an action whose `action.yml` is at a repository root | free |
 
 `attest` is taken on npm (v1.0.1, 2016). `@attestci` and `attest-ci` were
 unclaimed on 2026-08-11 — verify again before announcing, and claim the same
 hour you check.
 
+**Do not buy `attest.ci`.** Checked 2026-08-11: it was not offered by the
+registrar at all. `.ci` is Côte d'Ivoire's ccTLD, is not universally carried, and
+ccTLDs of that shape commonly run $60–200/yr. Available and cheap instead:
+`attestci.dev` at **$9.99**, `attestci.com` at **$11.25**. `.dev` is HSTS-preloaded,
+so it is HTTPS-only by construction — a reasonable fit for a security-adjacent
+developer tool.
+
 When the domain changes, it is one constant: `PRODUCT_URL` in
-`packages/core/src/product.ts`.
+`packages/core/src/product.ts`. Full ledger in [`gtm/costs.md`](gtm/costs.md).
 
 ---
 
@@ -75,14 +82,20 @@ again. Run the dry run first.
 
 ---
 
-## Gate 3 — Be reachable. Half a session, ~$0–20/month.
+## Gate 3 — Be reachable. Half a session, $0/month if hosted carefully.
 
 The docs are the product's surface area and currently exist only in this
 repository.
 
 - **Deploy `apps/web`.** [`vercel.json`](vercel.json) is written: build from the
-  repo root, output `apps/web/.next`, with CSP and HSTS headers set. Point the
-  domain at it.
+  repo root, output `apps/web/.next`, with CSP and HSTS headers set.
+
+  **But Vercel's Hobby plan prohibits commercial use**, so a business site there
+  costs $20/month per seat — $240/year, or 12% of the whole cap, spent on
+  deployment convenience before a single visitor exists. 54 of the site's 55
+  routes are prerendered and the one dynamic route is an event sink that is off
+  by default, so it can be hosted free on Cloudflare Pages, GitHub Pages or
+  Netlify, all of which permit commercial use on their free tiers. Start there.
 - **Set up `support@` and `security@`.** Forwarding addresses are fine. An
   unmonitored address is worse than none, and the [support
   system](gtm/support.md) already promises best-effort email and nothing more.
@@ -144,7 +157,10 @@ Write the date in `PROGRESS.md` on the day the third scan is published.
 Do not do any of this before Gate 5 produces installs.
 
 - Deploy the hosted API (`apps/api/Dockerfile` is written; it needs a Postgres
-  and about $20/month). Generate the signing keypair and **publish the public
+  and about $5–20/month). Note that evidence storage is append-only with
+  seven-year retention: measured at ~34 KB per report, one active Team account
+  is roughly 5 GB/year, so a 500 MB free-tier database is exhausted by a single
+  busy repository in about a month. Generate the signing keypair and **publish the public
   key at a stable URL before signing anything with it.**
 - Set up Paddle. [`mor-setup.md`](gtm/legal/mor-setup.md). Approval can take
   days, so apply before you need it — but not before there is anything to sell.
@@ -176,14 +192,15 @@ Every item here will feel productive and none of it moves the business.
 
 | | |
 | --- | --- |
-| Domain | ~$50 |
+| Domain | ~$10 |
 | Solicitor review | ~$300–800 |
-| Hosting (web only, through Gate 5) | ~$0 |
+| Hosting (web only, through Gate 5) | $0 free tier, or $240/yr on Vercel Pro |
 | npm, GitHub, Paddle setup | $0 |
-| **Total against the $2,000 cap** | **~$350–850** |
+| **Total against the $2,000 cap** | **~$310–830** |
 
-The remaining ~$1,000 is the buffer for the hosted service at Gate 6, and it
-should not be spent before then.
+The remaining ~$1,200–1,700 is the buffer for the hosted service at Gate 6, and
+it should not be spent before then. Full breakdown, including the storage growth
+model and the runaway risks, in [`gtm/costs.md`](gtm/costs.md).
 
 ---
 
