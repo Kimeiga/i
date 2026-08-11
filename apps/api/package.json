@@ -1,0 +1,23 @@
+{
+  "name": "@attestci/api",
+  "version": "0.1.0",
+  "description": "Hosted evidence store, trend history, signed exports and accessibility statement drafting. Proprietary.",
+  "private": true,
+  "license": "SEE LICENSE IN ../LICENSE",
+  "type": "module",
+  "main": "./dist/server.js",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/server.js",
+    "migrate": "node scripts/migrate.mjs",
+    "keygen": "node scripts/keygen.mjs"
+  },
+  "dependencies": {
+    "@attestci/core": "workspace:*",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10"
+  }
+}

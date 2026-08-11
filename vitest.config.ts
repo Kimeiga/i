@@ -20,7 +20,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['packages/**/test/**/*.test.ts'],
+    include: ['packages/**/test/**/*.test.ts', 'apps/**/test/**/*.test.ts'],
     environment: 'node',
     // Rule tests parse real fixture files off disk; the default 5s is tight
     // once ts-morph builds a project.
