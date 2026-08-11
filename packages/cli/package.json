@@ -1,0 +1,32 @@
+{
+  "name": "@attestci/cli",
+  "version": "0.1.0",
+  "description": "The attest command line interface: scan a React or Next.js codebase, diff two scans, and produce a report.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "attest": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "engines": { "node": ">=22" },
+  "scripts": { "build": "tsc -b" },
+  "dependencies": {
+    "@attestci/core": "workspace:*",
+    "@attestci/rules-a11y": "workspace:*",
+    "@attestci/rules-privacy": "workspace:*"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": { "optional": true }
+  }
+}

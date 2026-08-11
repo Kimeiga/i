@@ -175,6 +175,10 @@ export async function runScan(
       standards: [...(finding.standards ?? rule.standards)],
       fingerprint: fingerprintOf(rule.id, finding.location, finding.evidence, index),
       surface: finding.surface || deriveSurface(finding.location),
+      // The boundary transition is what turns a lint error into a statement
+      // about the system, and it is the whole content of the "Privacy boundary
+      // changed" section. Dropping it here silently empties that section.
+      boundary: finding.boundary,
     }
 
     const waiver = await suppressionFor(complete, readSource, suppressionCache)
