@@ -12,9 +12,17 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
-  "engines": { "node": ">=22" },
-  "scripts": { "build": "tsc -b" },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepublishOnly": "node ../../scripts/guard-publish.mjs"
+  },
   "dependencies": {
     "@attestci/core": "workspace:*",
     "axe-core": "^4.13.0",
@@ -24,10 +32,16 @@
     "playwright": ">=1.40.0"
   },
   "peerDependenciesMeta": {
-    "playwright": { "optional": true }
+    "playwright": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "playwright": "^1.62.1"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

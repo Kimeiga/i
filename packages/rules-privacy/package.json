@@ -12,12 +12,24 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
-  "engines": { "node": ">=22" },
-  "scripts": { "build": "tsc -b" },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepublishOnly": "node ../../scripts/guard-publish.mjs"
+  },
   "dependencies": {
     "@attestci/core": "workspace:*",
     "ts-morph": "^28.0.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

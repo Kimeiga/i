@@ -29,6 +29,12 @@ jobs:
       - uses: attest-ci/attest-action@v1
 ```
 
+> **Not published yet.** Until the standalone action repository exists, reference
+> it from this monorepo directly:
+> `uses: kimeiga/i/packages/action@main`. GitHub Marketplace only lists an
+> action whose `action.yml` is at the root of its own repository, so
+> `.github/workflows/sync-action.yml` mirrors this directory to one on release.
+
 That runs the source-level checks: accessibility rules that do not need a
 browser, the privacy and placement rules, and the client-cost rules. It posts one
 comment and edits it in place on every push.

@@ -28,10 +28,15 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "prepublishOnly": "node ../../scripts/guard-publish.mjs"
   },
   "sideEffects": false,
   "dependencies": {
     "ts-morph": "^28.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

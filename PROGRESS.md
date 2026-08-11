@@ -68,7 +68,11 @@ generated docs page. CI fails if any of those is missing or stale.
 semantic (ten lines added above a finding report zero new findings) and the
 evidence suite that proves a broken hash chain names the record that broke it.
 
-**Four CI gates**: build, claim check, tests, docs coverage.
+**Seven CI gates**: build, forbidden-claims, claim graph, page rubric, tests,
+docs coverage, and a smoke test that packs the packages and installs them into a
+clean project. The last one earned its place immediately — it found that
+`npm pack` leaves `workspace:*` unresolved and produces a tarball nobody can
+install, which the workspace build, the types and 69 passing tests all missed.
 
 **The hosted service**: append-only Postgres schema with the constraint enforced
 by a database trigger, hash-chained records, Ed25519-signed exports verifiable
@@ -88,7 +92,8 @@ support system with eight canned responses.
 
 ## Next three tasks
 
-In order. Each fits one 90-minute session.
+In order. Each fits one 90-minute session. The full ordered sequence, with
+costs and the founder-only split, is in [LAUNCH.md](LAUNCH.md).
 
 ### 1. Read the employment agreement — IP assignment and outside-work clauses
 
@@ -123,8 +128,14 @@ Everything after that is downstream of a working install.
 **Nothing is published.** The whole Phase 2 gate is unmeasurable until it is.
 
 **The domain is a placeholder.** `attest.ci` appears in the code and docs and has
-not been bought. It is one constant (`PRODUCT_URL`) and one search-and-replace, but
-every published docs link is dead until then.
+not been bought. It is one constant (`PRODUCT_URL`), but every published docs
+link is dead until it resolves.
+
+**The Action cannot be listed on the Marketplace from this repository.** GitHub
+only lists an action whose `action.yml` is at a repository root.
+`.github/workflows/sync-action.yml` mirrors `packages/action` to a standalone
+repo on release; that repo does not exist yet. Interim reference:
+`uses: kimeiga/i/packages/action@main`.
 
 ---
 

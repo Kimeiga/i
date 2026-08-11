@@ -50,6 +50,15 @@ jobs:
       - name: Rule documentation coverage
         run: pnpm lint:rule-docs
 
+      - name: Version consistency
+        run: node scripts/check-versions.mjs
+
+      # Installs the packed tarballs into a clean project and runs them. This
+      # caught a release blocker the workspace build could not: npm pack leaves
+      # `workspace:*` unresolved and produces a tarball nobody can install.
+      - name: Smoke test the published form
+        run: node scripts/smoke-test-packages.mjs
+
       # Proves the published entry point works from a clean shell, not just
       # through the workspace.
       - name: Smoke test the CLI

@@ -78,7 +78,7 @@ function sessionSignal(options: Node): SessionSignal | undefined {
     if (Node.isObjectLiteralExpression(headers)) {
       for (const name of SESSION_HEADERS) {
         if (hasPropertyKey(headers, name)) {
-          return { description: `a ${name} header`, node: headers }
+          return { description: `${article(name)} ${name} header`, node: headers }
         }
       }
     }
@@ -94,6 +94,11 @@ function sessionSignal(options: Node): SessionSignal | undefined {
   }
 
   return undefined
+}
+
+/** "an authorization header", not "a authorization header". */
+function article(word: string): string {
+  return /^[aeiou]/i.test(word) ? 'an' : 'a'
 }
 
 function urlOf(call: CallExpression): string | undefined {

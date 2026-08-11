@@ -1,0 +1,76 @@
+name: release
+
+# Publishing is deliberately manual and tag-driven. There is no auto-publish on
+# merge to main: a package that has been published cannot be unpublished after
+# 72 hours, and a one-person project should never be one accidental merge away
+# from a permanent mistake.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Pack and verify without publishing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    # Everything the normal CI does, plus the check that actually matters for a
+    # release: install the packed tarballs into a clean project and run them.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm check
+
+      - name: Version consistency
+        run: node scripts/check-versions.mjs
+
+      - name: Pack and smoke test the published form
+        run: node scripts/smoke-test-packages.mjs
+
+  publish:
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Required for npm provenance, which ties the published tarball to this
+      # workflow run and this commit. Free, and the cheapest supply-chain signal
+      # a small publisher can offer.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # pnpm, not npm: npm does not rewrite the `workspace:*` protocol and
+      # produces a tarball that fails to install. scripts/guard-publish.mjs
+      # blocks the npm path, and this is the path that works.
+      - name: Publish to npm
+        run: pnpm -r publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
