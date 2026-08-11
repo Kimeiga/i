@@ -141,9 +141,15 @@ features. Set the date when the third scan is published and hold it.
 catches, stop. **Currently passed**, on the evidence above.
 
 **Revenue.** If Phase 3 ships and nobody who was not personally asked pays within
-90 days, the willingness-to-pay thesis is wrong. Roughly 40% of micro-SaaS
-products never reach $1,000 MRR; that is the base rate to plan against, not an
-outlier to fear.
+90 days, the willingness-to-pay thesis is wrong.
+
+The brief this project came from quoted base rates — roughly 17% of new
+subscription products reaching $1,000 MRR within two years, roughly 40% never
+reaching it at all. `[UNVERIFIED]` — I could not find a primary source for either
+and they are recorded here only as the framing they were given as, not as
+established fact. Do not repeat them anywhere public. The decision-relevant point
+survives without them: most products in this category do not reach meaningful
+revenue, and planning as though this one will is the mistake.
 
 ---
 
@@ -175,9 +181,8 @@ The engineering is in good shape and further along than the calendar suggests. T
 rule set is real, the false-positive discipline is real and has already been
 tested, and the architecture genuinely supports adding a rule in one evening.
 
-**Distribution is untested and is the entire risk.** Roughly 17% of new
-subscription products reach $1,000 MRR within two years. Building was never the
-scarce input.
+**Distribution is untested and is the entire risk.** Building was never the scarce
+input, and nothing built so far is evidence that anyone wants it.
 
 The single most valuable thing that has happened so far is not any of the code. It
 is that running the scanner against three real repositories found two false
