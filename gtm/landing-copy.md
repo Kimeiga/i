@@ -1,3 +1,18 @@
+> **Superseded.** This file was the hand-written landing copy for v1. The live
+> pages are now structured data in `apps/web/content/pages/*.json`, built from
+> the briefs in [`conversion/positioning-hypotheses.md`](conversion/positioning-hypotheses.md)
+> and checked against [`conversion/claims.yaml`](conversion/claims.yaml) by
+> `scripts/check-claims.mjs`.
+>
+> It is kept because it records what v1 said, and because two things in it were
+> wrong in ways worth remembering: it used "Scan a public page free" as the
+> primary call to action for a hosted scanner that does not exist, and it showed
+> pricing tiers as though they could be bought. Both are now blocked by the
+> claim linter. The archived page itself is at `/v1` and the reasoning is at
+> `/compare`.
+
+---
+
 # Landing page copy
 
 Implemented in `apps/web`. Rules for anyone editing it:

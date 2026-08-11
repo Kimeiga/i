@@ -1,0 +1,100 @@
+# Predeclared before any traffic exists, which is the only time it is honest to
+# write a stopping rule.
+#
+# STATUS: not started. Cannot start until the packages are published and the
+# GitHub Action listing is live, because the primary metric is an Action install.
+
+id: exp-001-mechanism-vs-proof
+status: not_started
+blocked_by:
+  - packages not published to npm
+  - Action not listed on the GitHub Marketplace
+  - no traffic
+
+hypothesis: >-
+  For visitors who are already solution-aware, a page that leads with the
+  lowest-commitment proof ("thirty seconds, no account") produces more Action
+  installs per visitor than one that leads with the mechanism ("the file with the
+  bug in it looks fine"), because the mechanism framing asks the visitor to find
+  a class of bug interesting before it asks them to do anything.
+
+# Two whole positioning strategies, not two headlines. Comparing synonyms is how
+# a low-traffic product spends six months learning nothing.
+arms:
+  control:
+    page: home-mechanism-v2
+    hypothesis_id: H2
+  challenger:
+    page: github-proof-v1
+    hypothesis_id: H3
+
+# Both arms serve the SAME traffic. The /for/eaa page is not in this experiment:
+# it serves different traffic, so comparing it here would measure the source.
+eligibility:
+  traffic_sources: [github_marketplace]
+  exclude:
+    - returning visitors already assigned
+    - bots and preview crawlers
+    - internal traffic
+
+allocation: 0.5
+
+metrics:
+  primary: github_action_installed_per_unique_visitor
+  # The CLI reports nothing by design, so this is the observable proxy and its
+  # leakage is known and accepted rather than hidden.
+  secondary:
+    - install_command_copied
+    - sample_report_opened
+    - action_docs_reached
+  guardrails:
+    - unqualified_signups
+    - support_minutes_per_activation
+    - accessibility_violations_on_own_site # must remain zero
+
+# Powered for a large effect, because a small one is not worth detecting at this
+# traffic level and pretending otherwise produces an experiment that runs for a
+# year and concludes nothing.
+power:
+  baseline_conversion: 0.03
+  minimum_detectable_effect_relative: 0.50
+  alpha: 0.05
+  power: 0.80
+  # Computed by `node scripts/experiment-power.mjs power --baseline=0.03 --mde=0.5`.
+  # Recompute whenever the baseline changes; a stale number here is a stopping
+  # rule that stops at the wrong time.
+  required_visitors_per_arm: 2518
+
+horizon:
+  # Fixed horizon. No peeking, no stopping at the first favourable p-value —
+  # repeatedly checking an ordinary fixed-horizon test and stopping when it looks
+  # good invalidates the inference entirely.
+  type: fixed
+  minimum_days: 14 # covers two full weekly cycles
+  stop_when: both arms reach required_visitors_per_arm AND minimum_days elapsed
+
+analysis:
+  method: two_proportion_z_test
+  # Run BEFORE reading the result. A skewed split means the comparison is not
+  # between the arms; it is between whatever caused the skew.
+  sample_ratio_mismatch_check: required
+  segments_reported:
+    - device
+    - new_vs_returning
+  # Declared now so a subgroup cannot be discovered after the fact and reported
+  # as the finding.
+  no_post_hoc_segments: true
+
+stopping_rules:
+  abort_if:
+    - sample ratio mismatch detected
+    - any guardrail breaches its threshold
+    - a page fails claim lint in production
+  do_not_abort_for:
+    - the result looking good early
+
+what_a_null_result_means: >-
+  If the two arms are indistinguishable, that is a useful answer: it means the
+  positioning is not the binding constraint at this stage and the next experiment
+  should be about the offer or the traffic, not the page. Record it and move on
+  rather than re-running with a smaller effect size.

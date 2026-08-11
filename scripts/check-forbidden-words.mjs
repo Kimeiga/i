@@ -41,6 +41,16 @@ const SCANNED_EXTENSIONS = ['.md', '.mdx', '.html', '.tsx', '.ts', '.jsx', '.js'
 
 const ALLOW_MARKER = /claims-ok:/
 
+/**
+ * Files whose entire purpose is to enumerate forbidden text.
+ *
+ * claims.yaml lists the prohibited claims by their exact wording, which is what
+ * makes it usable as a control — a registry of banned phrases that cannot name
+ * them is not a registry. It is enforced by check-claims.mjs instead, which is
+ * the script that reads it.
+ */
+const EXEMPT_FILES = ['gtm/conversion/claims.yaml']
+
 const patterns = FORBIDDEN_CLAIM_PATTERNS.map((source) => ({
   source,
   regex: new RegExp(source, 'i'),
@@ -89,6 +99,9 @@ async function collect(path) {
 }
 
 async function checkFile(file) {
+  const relative = file.replace(repoRoot, '').replace(/^\/+/, '')
+  if (EXEMPT_FILES.includes(relative)) return
+
   const text = await readFile(file, 'utf8')
   const lines = text.split(/\r?\n/)
 

@@ -1,0 +1,361 @@
+{
+  "id": "home-mechanism-v2",
+  "hypothesisId": "H2",
+  "trafficSources": [
+    "direct",
+    "hn_launch",
+    "lobsters",
+    "reddit_nextjs",
+    "word_of_mouth"
+  ],
+  "objective": {
+    "primaryMetric": "github_action_installed_per_unique_visitor",
+    "offer": "run the CLI locally, no account"
+  },
+  "hero": {
+    "eyebrow": "CI check for React and Next.js",
+    "headline": "The file with the bug in it looks fine.",
+    "subhead": "`'use client'` marks a boundary, not a file. Attest follows it through your whole import graph and reports what each pull request changed — accessibility, data placement, client cost.",
+    "proofLine": {
+      "text": "Pointed at vercel/commerce, it found a helper with no directive in it reading a server-only environment variable in the browser.",
+      "href": "/scans/2026-08-vercel-commerce",
+      "claimIds": [
+        "C021"
+      ]
+    },
+    "trustLine": "MIT licensed. Runs on your machine. Sends nothing anywhere. Not an overlay.",
+    "claimIds": [
+      "C001",
+      "C002",
+      "C020",
+      "C040",
+      "C041",
+      "C052"
+    ]
+  },
+  "primaryCta": {
+    "label": "Copy the command",
+    "command": "npx @attestci/cli scan .",
+    "event": "install_command_copied"
+  },
+  "secondaryCta": {
+    "label": "Read the vercel/commerce report",
+    "href": "/scans/2026-08-vercel-commerce",
+    "event": "sample_report_opened"
+  },
+  "sections": [
+    {
+      "kind": "evidence",
+      "id": "the-finding",
+      "heading": "A helper that became browser code",
+      "intro": "Scanned at commit `3761e52`. The command is on the report page; you can reproduce it.",
+      "chain": [
+        {
+          "label": "components/cart/modal.tsx",
+          "note": "'use client'"
+        },
+        {
+          "label": "lib/utils.ts",
+          "note": "no directive — an ordinary helper"
+        },
+        {
+          "label": "process.env.VERCEL_PROJECT_PRODUCTION_URL",
+          "note": "undefined in the browser"
+        }
+      ],
+      "caption": "So `baseUrl` falls back to `http://localhost:3000` in every production browser. Nothing errors. Whether it is a live bug depends on whether client code reads it — in this codebase it mostly does not. It is real, currently benign, and a trap for the next person who imports it.",
+      "source": {
+        "label": "Full report, with the content hash",
+        "href": "/scans/2026-08-vercel-commerce"
+      },
+      "claimIds": [
+        "C021",
+        "C020"
+      ]
+    },
+    {
+      "kind": "prose",
+      "id": "why-linters-miss-it",
+      "heading": "Why a linter cannot see this",
+      "body": [
+        "Nothing about `lib/utils.ts` is wrong. Read it on its own and there is no defect — it reads an environment variable, which is what a configuration module does.",
+        "It became browser code by being imported. The import that did it lives in a different file, which is also fine on its own. The defect is the pair, and the pair is several hops apart.",
+        "ESLint reads one file at a time, so this sits outside what it can answer. axe evaluates a rendered DOM, so it never sees the module at all. The analysis needs a whole-program view of which modules end up in the bundle, which is the thing Attest builds first and everything else here rests on."
+      ],
+      "claimIds": [
+        "C020"
+      ]
+    },
+    {
+      "kind": "code",
+      "id": "what-a-run-says",
+      "heading": "What lands on the pull request",
+      "language": "text",
+      "code": "Accessibility conformance changed\ncheckout/PaymentForm: 3 new WCAG 2.1 AA violations (label association, focus order)\n\nPrivacy boundary changed\ncustomer_profile: session-private → reachable from shared cache\n\nClient impact\n+18 KB startup JavaScript, one new sequential server fetch",
+      "caption": "Not a list of everything wrong — a statement of what this change did. Findings are fingerprinted without line numbers, so adding an import at the top of a file does not report the ten findings below it as new. That property is under test, because without it the comment becomes noise and there is no product.",
+      "claimIds": [
+        "C002",
+        "C003"
+      ]
+    },
+    {
+      "kind": "table",
+      "id": "layers",
+      "heading": "Four layers, 30 rules",
+      "columns": [
+        "Layer",
+        "Needs",
+        "Finds"
+      ],
+      "rows": [
+        [
+          "Runtime accessibility",
+          "A running app and a browser",
+          "WCAG failures in the real rendered DOM, via axe-core"
+        ],
+        [
+          "Static accessibility",
+          "Source only",
+          "A narrower set, in the pull request that introduces it"
+        ],
+        [
+          "Privacy and placement",
+          "Source only",
+          "Session data entering shared caches, server values reaching the browser, effects repeated under retry"
+        ],
+        [
+          "Client impact",
+          "Source, plus build output",
+          "Startup JavaScript and avoidable round trips"
+        ]
+      ],
+      "note": "A layer that could not run is reported as **did not run**, never as clean — and the diff excludes layers that ran on only one side. Reporting twelve violations as fixed because the head scan could not launch a browser would be the most damaging bug this could ship.",
+      "claimIds": [
+        "C004",
+        "C032",
+        "C010"
+      ]
+    },
+    {
+      "kind": "disclosure",
+      "id": "what-we-got-wrong",
+      "tone": "admission",
+      "heading": "What we got wrong",
+      "body": [
+        "The first time this scanner was pointed at real repositories rather than at its own fixtures, it produced two false positives within an hour. Neither had been caught by any test.",
+        "It followed type-only imports. So a `lib/types.ts` doing `import type { x } from './db/queries'` made an entire database layer look browser-reachable — reported at critical severity, on correct code, on the exact pattern every well-organised TypeScript codebase uses.",
+        "And it matched JSX tags case-insensitively, so `<Input>` — somebody's design-system wrapper that sets an id and spreads props we cannot see — was treated as the DOM element `<input>`. That reported 106 missing labels in one repository, essentially all of them correct code.",
+        "Both are fixed. Both have regression fixtures named after the scan that found them. Both are written up on the public scan pages with the before and after counts: 158 findings became 54, and 23 became 16.",
+        "This is on the landing page rather than in a changelog because a tool whose false positives you only discover yourself is a tool you should not install."
+      ],
+      "claimIds": [
+        "C050"
+      ]
+    },
+    {
+      "kind": "table",
+      "id": "limits",
+      "heading": "What it does not do",
+      "columns": [
+        "It checks",
+        "It cannot judge"
+      ],
+      "rows": [
+        [
+          "Whether an image has a text alternative",
+          "Whether the alt text is correct"
+        ],
+        [
+          "Whether a form control can be labelled at all",
+          "Whether the label is comprehensible"
+        ],
+        [
+          "Whether focusable content is hidden from assistive technology",
+          "Whether focus goes somewhere sensible when a dialog opens"
+        ],
+        [
+          "The pages you list",
+          "Pages you do not, and states you never navigated to"
+        ],
+        [
+          "React and Next.js source",
+          "Vue, Svelte, Rails, PDFs, video captions, native apps"
+        ]
+      ],
+      "note": "Automated tooling can evaluate roughly a quarter to a third of WCAG 2.1 success criteria. That is the ceiling for the category, not a roadmap item — and the right-hand column is why a manual audit is still worth buying.",
+      "claimIds": [
+        "C011"
+      ]
+    },
+    {
+      "kind": "prose",
+      "id": "not-an-overlay",
+      "heading": "It is not an overlay, and it never will be",
+      "body": [
+        "No script tag. Nothing injected into your site. Nothing modified at runtime. Attest runs in your CI and produces a report; you change the code, and the change is still there if you stop using us.",
+        "In January 2025 the US Federal Trade Commission ordered accessiBe to pay $1,000,000 over claims that its AI-powered product could make websites conform to WCAG 2.1 AA. That is the precise failure mode this product is built to avoid — which is why this repository contains a check that greps its own documentation and landing page for compliance language and fails the build when it finds any.",
+        "Attest does not make you compliant, and no tool can. This is not legal advice."
+      ],
+      "claimIds": [
+        "C052",
+        "C062",
+        "C063"
+      ]
+    },
+    {
+      "kind": "steps",
+      "id": "what-it-needs",
+      "heading": "What it needs, and what it sends",
+      "steps": [
+        {
+          "title": "Nothing, to start",
+          "body": "`npx @attestci/cli scan .` reads your source and prints a report. No account, no signup, no telemetry, and no network request except to URLs you pass yourself. The source is MIT, so that is checkable rather than a promise."
+        },
+        {
+          "title": "A browser, for the runtime checks",
+          "body": "`npm i -D playwright && npx playwright install chromium`, then pass `--url`. Without it the runtime layer is reported as skipped, with the reason. It is never reported as clean."
+        },
+        {
+          "title": "A GitHub Action, for the pull request comment",
+          "body": "`contents: read`, plus `pull-requests: write` only for the comment itself. Set `comment: false` and it needs nothing beyond read. It scans the merge base in a git worktree; when that is impossible it says so rather than inventing a baseline."
+        }
+      ],
+      "claimIds": [
+        "C040",
+        "C041",
+        "C032"
+      ]
+    },
+    {
+      "kind": "table",
+      "id": "price",
+      "heading": "Price",
+      "columns": [
+        "",
+        "Price",
+        "What you get",
+        "Status"
+      ],
+      "rows": [
+        [
+          "Free",
+          "$0",
+          "CLI, all 30 rules, GitHub Action, PR comment, SARIF, badge. MIT licensed.",
+          "Available now"
+        ],
+        [
+          "Solo",
+          "$49 / repo / month",
+          "Hosted history and regression tracking",
+          "Not yet available"
+        ],
+        [
+          "Team",
+          "$299 / month",
+          "Ten repositories, organisation policy, signed evidence export, statement drafting",
+          "Not yet available"
+        ]
+      ],
+      "note": "The hosted service is written and tested but is **not yet available** — nothing is deployed and nothing is for sale. When it is, you will be paying for memory, not for detection. The free tier is the whole tool, it is MIT, and it does not become a trial later.",
+      "claimIds": [
+        "C004",
+        "C041",
+        "P002"
+      ]
+    },
+    {
+      "kind": "faq",
+      "id": "faq",
+      "heading": "Questions worth asking before installing anything",
+      "items": [
+        {
+          "q": "We already run axe. Why this?",
+          "a": [
+            "Keep running it. We run axe-core for you, unmodified, and credit Deque for it — their detection is better than anything we would write.",
+            "Two things you do not get from axe alone: a report of what *changed* rather than what exists, and the privacy layer, which axe structurally cannot do because it evaluates a rendered DOM and these defects are not visible in one.",
+            "If you already run axe in CI, on every route, with results tracked over time, you have most of the accessibility half. Install this for the other half or do not install it."
+          ],
+          "claimIds": [
+            "C010",
+            "C002",
+            "C022"
+          ]
+        },
+        {
+          "q": "Does my source code leave my machine?",
+          "a": [
+            "Not with the CLI. It sends nothing anywhere, and the source is MIT, so that is checkable rather than a promise.",
+            "The hosted service is **not yet available**. When it ships it will receive the report — rule ids, file paths, line numbers, and code excerpts capped at 400 characters — never your repository."
+          ],
+          "claimIds": [
+            "C040",
+            "P002"
+          ]
+        },
+        {
+          "q": "What is your false positive rate?",
+          "a": [
+            "We do not have a number we would defend, so we are not going to invent one.",
+            "What we have instead: every rule ships with code that must trigger it and code that must not, both run on every commit; and every false positive found so far is published with before-and-after counts. Two so far, both fixed, both with regression fixtures."
+          ],
+          "claimIds": [
+            "C050"
+          ]
+        },
+        {
+          "q": "Does this cover the European Accessibility Act?",
+          "a": [
+            "No tool covers it. The EAA has applied since 28 June 2025, and the harmonised standard it points at — EN 301 549 v3.2.1 — incorporates WCAG 2.1 Level AA.",
+            "Attest checks the automatable subset of that, proves it does not regress, and dates what it checked. Conformance is a determination about a whole service, normally involving human evaluation and testing with disabled users.",
+            "This is not legal advice. The sources, and the four widely-quoted figures we could not verify, are in the regulatory context page."
+          ],
+          "claimIds": [
+            "C060",
+            "C061",
+            "C063",
+            "C011"
+          ]
+        },
+        {
+          "q": "Will it work on Vue, Svelte, Rails or WordPress?",
+          "a": [
+            "The runtime accessibility layer would, because axe runs against a rendered DOM and does not care what produced it — but you can get that free from Deque and they will do it better.",
+            "The layer that makes this worth choosing is React and Next.js only, and adding frameworks is not planned."
+          ],
+          "claimIds": [
+            "C001",
+            "C010"
+          ]
+        },
+        {
+          "q": "Who is behind this, and will it exist in a year?",
+          "a": [
+            "One person, working evenings. There is no sales team, no SOC 2, no custom contracts and no negotiated DPA, and there will not be.",
+            "The mitigation is that the part you would depend on is MIT licensed and runs entirely on your own machines. If this disappears, the CLI and the Action keep working and you can fork them.",
+            "If your procurement requires more than that, we are not a good fit, and we would rather say so before you spend a month finding out."
+          ],
+          "claimIds": [
+            "C041",
+            "C040"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "id": "final",
+      "heading": "Run it on something you already know",
+      "body": "Point it at a repository where you would recognise a wrong answer. That is the fastest way to find out whether this is useful, and it is the only proof we have that does not require trusting us.",
+      "primary": {
+        "label": "Copy the command",
+        "command": "npx @attestci/cli scan .",
+        "event": "install_command_copied_footer"
+      },
+      "secondary": {
+        "label": "Or read what it said about three repositories you know",
+        "href": "/scans",
+        "event": "sample_report_opened_footer"
+      }
+    }
+  ]
+}

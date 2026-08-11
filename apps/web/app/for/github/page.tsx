@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import { RenderedPage } from '@/components/page-sections'
 import { PAGES } from '@/lib/pages'
 
-const spec = PAGES.home!
+/** Written for GitHub Marketplace traffic: solution-aware, evaluating a CI check. */
+const spec = PAGES.github!
 
 export const metadata: Metadata = {
-  title: `${spec.hero.headline} · Attest`,
+  title: 'Attest for GitHub Actions',
   description: spec.hero.subhead.replace(/[`*]/g, ''),
 }
 
-export default function Home() {
+export default function ForGithub() {
   return <RenderedPage spec={spec} />
 }

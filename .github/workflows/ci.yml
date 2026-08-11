@@ -38,8 +38,11 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Forbidden claims
+      - name: Forbidden claims and claim graph
         run: pnpm lint:claims
+
+      - name: Landing page rubric
+        run: pnpm lint:pages
 
       - name: Tests
         run: pnpm test
@@ -112,5 +115,9 @@ jobs:
             --url http://127.0.0.1:3111/ \
             --url http://127.0.0.1:3111/pricing \
             --url http://127.0.0.1:3111/dashboard \
+            --url http://127.0.0.1:3111/for/github \
+            --url http://127.0.0.1:3111/for/eaa \
+            --url http://127.0.0.1:3111/compare \
+            --url http://127.0.0.1:3111/v1 \
             --url http://127.0.0.1:3111/scans \
             --url http://127.0.0.1:3111/docs/what-attest-cannot-detect

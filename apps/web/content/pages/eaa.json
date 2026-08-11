@@ -1,0 +1,166 @@
+{
+  "id": "eaa-risk-v1",
+  "hypothesisId": "H1",
+  "trafficSources": ["eaa_search", "accessibility_search", "compliance_referral"],
+  "objective": {
+    "primaryMetric": "github_action_installed_per_unique_visitor",
+    "offer": "run the CLI locally, no account"
+  },
+
+  "hero": {
+    "eyebrow": "Accessibility regression testing for React and Next.js",
+    "headline": "Stop accessibility regressions before they reach production.",
+    "subhead": "Attest checks every pull request against the automatable subset of WCAG 2.1, links each finding to the line that caused it, and keeps a dated record of what was checked and what was waived.",
+    "proofLine": {
+      "text": "It does not determine conformance, and no tool can. What it covers, and what it cannot, is the first section of this page rather than the last.",
+      "claimIds": ["C011", "C063"]
+    },
+    "trustLine": "Not an overlay. No compliance claim. Automated checks only.",
+    "claimIds": ["C001", "C002", "C052", "C063"]
+  },
+
+  "primaryCta": {
+    "label": "Copy the command",
+    "command": "npx @attestci/cli scan .",
+    "event": "install_command_copied"
+  },
+  "secondaryCta": {
+    "label": "What Attest cannot detect",
+    "href": "/docs/what-attest-cannot-detect",
+    "event": "limits_page_reached"
+  },
+
+  "sections": [
+    {
+      "kind": "table",
+      "id": "limits",
+      "heading": "Read this before the rest of the page",
+      "intro": "If you arrived here because of the European Accessibility Act, the most useful thing on this page is the boundary of what any automated tool can do.",
+      "columns": ["Automated checks can decide", "Only a person can decide"],
+      "rows": [
+        ["Whether an image has a text alternative", "Whether the alt text conveys what the image conveys"],
+        ["Whether a form control can be labelled at all", "Whether the label helps"],
+        ["Whether heading levels skip", "Whether the headings describe the page"],
+        ["Whether a field marked invalid points at a message", "Whether the message tells the user how to fix it"],
+        ["Whether focusable content is hidden from assistive technology", "Whether focus goes somewhere sensible when a dialog opens"],
+        ["Contrast ratios on pages you list", "Whether the page works with a screen reader"]
+      ],
+      "note": "Automated tooling can evaluate roughly a quarter to a third of WCAG 2.1 success criteria. The right-hand column is not a gap we plan to close — it is a set of questions with no machine-checkable answer, and it is why a manual audit and testing with disabled users remain necessary.",
+      "claimIds": ["C011"]
+    },
+
+    {
+      "kind": "prose",
+      "id": "regulatory",
+      "heading": "Where the requirement comes from",
+      "body": [
+        "The European Accessibility Act, Directive (EU) 2019/882, has applied since 28 June 2025. It was transposed into national law, so the enforcement body, the procedure and the penalties differ by member state — there is no single EU-wide regulator.",
+        "The technical standard it points at is EN 301 549. The current harmonised version, v3.2.1, incorporates WCAG 2.1 Level AA in full, which is why every criterion referenced by this product is a 2.1 criterion. A v4.x incorporating WCAG 2.2 is drafted and not yet referenced in the Official Journal.",
+        "**This is not legal advice.** Our sources, and the four widely-quoted figures we could not verify and therefore do not use, are listed in the regulatory context page."
+      ],
+      "claimIds": ["C060", "C061", "C063"]
+    },
+
+    {
+      "kind": "prose",
+      "id": "what-it-actually-does",
+      "heading": "What Attest does about it",
+      "body": [
+        "It owns the automatable part and proves it does not get worse. Runtime accessibility detection is performed by axe-core, developed and maintained by Deque Systems, used unmodified and under its own licence. Attest wraps it; it does not fork it.",
+        "On every pull request it reports what *changed* rather than listing everything wrong, because a list of four hundred findings is acted on by nobody and a list of three is acted on immediately.",
+        "Every scan is timestamped and content-hashed, and a finding a developer waived stays in the record with the reason they gave. When somebody asks what you knew and when, that is an answer. A tool whose output can be silenced invisibly is worth nothing as evidence."
+      ],
+      "claimIds": ["C010", "C002", "C030", "C031"]
+    },
+
+    {
+      "kind": "code",
+      "id": "what-a-run-says",
+      "heading": "What lands on the pull request",
+      "language": "text",
+      "code": "Accessibility conformance changed\ncheckout/PaymentForm: 3 new WCAG 2.1 AA violations (label association, focus order)\n\nPrivacy boundary changed\ncustomer_profile: session-private → reachable from shared cache\n\nClient impact\n+18 KB startup JavaScript, one new sequential server fetch",
+      "caption": "Findings are fingerprinted without line numbers, so an unrelated edit does not resurrect old findings as new ones. A layer that could not run is reported as **did not run**, never as clean.",
+      "claimIds": ["C002", "C003", "C032"]
+    },
+
+    {
+      "kind": "prose",
+      "id": "not-an-overlay",
+      "heading": "It is not an overlay",
+      "body": [
+        "No script tag. Nothing injected into your site. Nothing modified at runtime. Attest produces a report and you change the code — so the fix is in your source, reviewable, and still there if you stop using this.",
+        "In January 2025 the US Federal Trade Commission ordered accessiBe to pay $1,000,000 to settle allegations that it misrepresented its AI-powered product's ability to make websites conform to WCAG 2.1 AA. Overlays do not produce conformance, and their presence is frequently read as evidence that a site was never made accessible.",
+        "That case is why this repository contains a check that greps its own documentation and marketing for compliance language and fails the build when it finds any. Attest does not make you compliant, and no tool can."
+      ],
+      "claimIds": ["C052", "C062", "C063"]
+    },
+
+    {
+      "kind": "disclosure",
+      "id": "what-we-got-wrong",
+      "tone": "admission",
+      "heading": "What we got wrong",
+      "body": [
+        "Pointed at real repositories for the first time, this scanner produced two false positives within an hour — one reporting a database layer as browser-reachable through a chain of type-only imports, the other reporting 106 phantom missing labels because it treated a design-system `<Input>` component as the DOM element `<input>`.",
+        "Both are fixed and both are written up publicly with before-and-after counts. In a category where vendors have overstated capability for a decade, being visibly correctable is the only trust argument available."
+      ],
+      "claimIds": ["C050"]
+    },
+
+    {
+      "kind": "faq",
+      "id": "faq",
+      "heading": "Questions people arrive with",
+      "items": [
+        {
+          "q": "Will this make us compliant with the EAA?",
+          "a": [
+            "No, and anyone who tells you their tool will is describing the claim the FTC fined accessiBe for.",
+            "Conformance is a determination about a whole service, normally involving a human audit and testing with disabled users. Attest handles the mechanical part, proves it does not regress, and dates it. That record is genuinely useful if anyone asks what you knew and when. It is not a determination. This is not legal advice."
+          ],
+          "claimIds": ["C062", "C011", "C063"]
+        },
+        {
+          "q": "Does it cover our PDFs, videos and mobile app?",
+          "a": [
+            "No. EN 301 549 covers documents, captions, audio description and native applications. Attest checks React and Next.js web applications only.",
+            "If your service delivers PDFs or video, that is in scope for the regulation and out of scope for this tool."
+          ],
+          "claimIds": ["C001", "C011"]
+        },
+        {
+          "q": "What should we do about the part this cannot check?",
+          "a": [
+            "Buy a manual audit from people who do it properly, and test with disabled users. Deque, TetraLogical and The Paciello Group all do, as do many smaller independent practitioners.",
+            "Attest makes that audit cheaper by clearing the mechanical findings before anyone bills you hourly for them. It does not replace it."
+          ],
+          "claimIds": ["C011"]
+        },
+        {
+          "q": "Does our source code leave our machines?",
+          "a": [
+            "Not with the CLI — it sends nothing anywhere, and the source is MIT so that is checkable rather than a promise."
+          ],
+          "claimIds": ["C040", "C041"]
+        }
+      ]
+    },
+
+    {
+      "kind": "cta",
+      "id": "final",
+      "heading": "See what it says about your codebase",
+      "body": "No account, no signup, nothing transmitted. If the findings are things you already knew, that is a useful answer too.",
+      "primary": {
+        "label": "Copy the command",
+        "command": "npx @attestci/cli scan .",
+        "event": "install_command_copied_footer"
+      },
+      "secondary": {
+        "label": "The full list of what Attest cannot detect",
+        "href": "/docs/what-attest-cannot-detect",
+        "event": "limits_page_reached_footer"
+      }
+    }
+  ]
+}

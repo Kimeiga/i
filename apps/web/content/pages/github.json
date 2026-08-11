@@ -1,0 +1,144 @@
+{
+  "id": "github-proof-v1",
+  "hypothesisId": "H3",
+  "trafficSources": ["github_marketplace", "github_action_search"],
+  "objective": {
+    "primaryMetric": "github_action_installed_per_unique_visitor",
+    "offer": "run the CLI locally, no account"
+  },
+
+  "hero": {
+    "eyebrow": "GitHub Action · React and Next.js",
+    "headline": "Thirty seconds to find out whether this is useful.",
+    "subhead": "`npx @attestci/cli scan .` reads your source and prints what it found. No account, no signup, nothing transmitted. If the findings are not interesting, you have lost thirty seconds and you can close the tab.",
+    "proofLine": {
+      "text": "On three well-known Next.js repositories it found 8, 16 and 54 things — and two bugs in itself, which are published.",
+      "href": "/scans",
+      "claimIds": ["C021", "C023", "C050"]
+    },
+    "trustLine": "MIT licensed. Needs `contents: read`, plus `pull-requests: write` only if you want the comment.",
+    "claimIds": ["C001", "C040", "C041"]
+  },
+
+  "primaryCta": {
+    "label": "Copy the command",
+    "command": "npx @attestci/cli scan .",
+    "event": "install_command_copied"
+  },
+  "secondaryCta": {
+    "label": "See the Action setup",
+    "href": "/docs/getting-started",
+    "event": "action_docs_reached"
+  },
+
+  "sections": [
+    {
+      "kind": "code",
+      "id": "install",
+      "heading": "The whole setup",
+      "language": "yaml",
+      "code": "name: attest\non: pull_request\n\npermissions:\n  contents: read\n  pull-requests: write\n\njobs:\n  attest:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n        with:\n          fetch-depth: 0     # so the base commit can be scanned for comparison\n      - uses: attest-ci/attest-action@v1",
+      "caption": "`fail-on-new-only` is on by default, so an existing codebase adopts the check without having to fix everything first. A check that goes red on day one gets removed on day two.",
+      "claimIds": ["C002"]
+    },
+
+    {
+      "kind": "code",
+      "id": "what-a-run-says",
+      "heading": "What lands on the pull request",
+      "language": "text",
+      "code": "Accessibility conformance changed\ncheckout/PaymentForm: 3 new WCAG 2.1 AA violations (label association, focus order)\n\nPrivacy boundary changed\ncustomer_profile: session-private → reachable from shared cache\n\nClient impact\n+18 KB startup JavaScript, one new sequential server fetch",
+      "caption": "One comment, edited in place on each push. Findings are fingerprinted without line numbers, so adding an import at the top of a file does not report the ten findings below it as new.",
+      "claimIds": ["C002", "C003"]
+    },
+
+    {
+      "kind": "evidence",
+      "id": "the-finding",
+      "heading": "The kind of thing it finds",
+      "intro": "From `vercel/commerce` at commit `3761e52`, reproducible.",
+      "chain": [
+        { "label": "components/cart/modal.tsx", "note": "'use client'" },
+        { "label": "lib/utils.ts", "note": "no directive — an ordinary helper" },
+        { "label": "process.env.VERCEL_PROJECT_PRODUCTION_URL", "note": "undefined in the browser" }
+      ],
+      "caption": "`'use client'` marks a boundary, not a file. Everything a client module imports also ships, so an ordinary helper becomes browser code and the environment variable it reads becomes `undefined` there — silently. ESLint reads one file at a time and cannot answer this.",
+      "source": { "label": "Full report", "href": "/scans/2026-08-vercel-commerce" },
+      "claimIds": ["C021", "C020"]
+    },
+
+    {
+      "kind": "table",
+      "id": "layers",
+      "heading": "What runs, and what each layer needs",
+      "columns": ["Layer", "Needs", "Runs in the Action by default"],
+      "rows": [
+        ["Static accessibility", "Source only", "Yes"],
+        ["Privacy and placement", "Source only", "Yes"],
+        ["Client impact", "Source, plus build output", "Yes"],
+        ["Runtime accessibility (axe-core)", "A running app and a browser", "Only if you pass `urls`"]
+      ],
+      "note": "A layer that could not run is reported as **did not run**, never as clean. If you do not pass URLs, the comment says the runtime accessibility checks were skipped and why.",
+      "claimIds": ["C004", "C010", "C032"]
+    },
+
+    {
+      "kind": "disclosure",
+      "id": "what-we-got-wrong",
+      "tone": "admission",
+      "heading": "Two false positives, published",
+      "body": [
+        "Pointed at real repositories for the first time, this scanner produced two false positives within an hour. Neither had been caught by any test.",
+        "It followed type-only imports, making a `lib/types.ts` look like it dragged a database layer into the browser — critical severity, on correct code. And it matched JSX tags case-insensitively, so `<Input>` was treated as `<input>`, reporting 106 phantom missing labels in one repository.",
+        "Both fixed, both with regression fixtures, both written up with before-and-after counts. A tool whose false positives you only discover yourself is a tool you should not install."
+      ],
+      "claimIds": ["C050"]
+    },
+
+    {
+      "kind": "table",
+      "id": "limits",
+      "heading": "What it does not do",
+      "columns": ["It checks", "It cannot judge"],
+      "rows": [
+        ["Whether an image has a text alternative", "Whether the alt text is correct"],
+        ["Whether a form control can be labelled at all", "Whether the label is comprehensible"],
+        ["The pages you list", "Pages you do not, and states you never navigated to"],
+        ["React and Next.js source", "Vue, Svelte, Rails, PDFs, video captions, native apps"]
+      ],
+      "note": "Automated tooling can evaluate roughly a quarter to a third of WCAG 2.1 success criteria. It does not make you compliant, and no tool can. This is not legal advice.",
+      "claimIds": ["C011", "C063"]
+    },
+
+    {
+      "kind": "table",
+      "id": "price",
+      "heading": "Price",
+      "columns": ["", "Price", "Status"],
+      "rows": [
+        ["Free — CLI, all 30 rules, Action, PR comment, SARIF, badge", "$0, MIT", "Available now"],
+        ["Solo — hosted history for one repository", "$49 / month", "Not yet available"],
+        ["Team — ten repositories, policy, signed evidence export", "$299 / month", "Not yet available"]
+      ],
+      "note": "The hosted service is written and tested but is **not yet available**. The free tier is the whole tool and does not become a trial later.",
+      "claimIds": ["C004", "C041", "P002"]
+    },
+
+    {
+      "kind": "cta",
+      "id": "final",
+      "heading": "Try it before you install anything",
+      "body": "The CLI needs no account and no permissions. Run it on a repository where you would recognise a wrong answer, then decide whether the Action is worth adding.",
+      "primary": {
+        "label": "Copy the command",
+        "command": "npx @attestci/cli scan .",
+        "event": "install_command_copied_footer"
+      },
+      "secondary": {
+        "label": "Action setup and inputs",
+        "href": "/docs/getting-started",
+        "event": "action_docs_reached_footer"
+      }
+    }
+  ]
+}

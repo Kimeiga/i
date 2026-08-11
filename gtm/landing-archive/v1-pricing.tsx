@@ -4,17 +4,7 @@ import { PRODUCT_NAME } from '@attestci/core'
 
 export const metadata: Metadata = { title: 'Pricing' }
 
-interface Tier {
-  name: string
-  price: string
-  unit?: string
-  note: string
-  features: string[]
-  status: string
-  cta?: { label: string; href: string }
-}
-
-const TIERS: Tier[] = [
+const TIERS = [
   {
     name: 'Free',
     price: '$0',
@@ -26,8 +16,7 @@ const TIERS: Tier[] = [
       'README badge',
       'Unlimited local use',
     ],
-    status: 'Available now',
-    cta: { label: 'Getting started', href: '/docs/getting-started' },
+    cta: { label: 'npx @attestci/cli scan .', href: '/docs/getting-started' },
   },
   {
     name: 'Solo',
@@ -40,7 +29,7 @@ const TIERS: Tier[] = [
       'Hash-chained evidence store',
       'One repository',
     ],
-    status: 'Not yet available',
+    cta: { label: 'Start', href: '/signup?plan=solo' },
   },
   {
     name: 'Team',
@@ -54,7 +43,7 @@ const TIERS: Tier[] = [
       'Signed evidence export (JSON + PDF)',
       'Accessibility statement drafting',
     ],
-    status: 'Not yet available',
+    cta: { label: 'Start', href: '/signup?plan=team' },
   },
 ]
 
@@ -66,11 +55,6 @@ export default function Pricing() {
         <p className="max-w-2xl text-[var(--color-muted)]">
           The free tier is not a trial. It is the whole tool, MIT licensed, and it stays that way.
           You pay for memory, not for detection.
-        </p>
-        <p className="max-w-2xl">
-          <strong>The paid tiers are not yet available.</strong> The hosted service is written and
-          tested but nothing is deployed, so nothing is for sale. The prices below are the intended
-          ones, published early so nobody is surprised later — not an offer you can accept today.
         </p>
       </section>
 
@@ -86,20 +70,17 @@ export default function Pricing() {
                   <span className="text-sm text-[var(--color-muted)]">{tier.unit}</span>
                 ) : null}
               </p>
-              <p className="mt-1 text-sm font-medium">{tier.status}</p>
               <p className="mt-1 text-sm text-[var(--color-muted)]">{tier.note}</p>
               <ul className="mt-4 space-y-1 text-sm">
                 {tier.features.map((feature) => (
                   <li key={feature}>{feature}</li>
                 ))}
               </ul>
-              {tier.cta ? (
-                <p className="mt-5">
-                  <Link href={tier.cta.href} className="text-[var(--color-accent)] underline">
-                    {tier.cta.label}
-                  </Link>
-                </p>
-              ) : null}
+              <p className="mt-5">
+                <Link href={tier.cta.href} className="text-[var(--color-accent)] underline">
+                  {tier.cta.label}
+                </Link>
+              </p>
             </div>
           ))}
         </div>

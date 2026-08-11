@@ -1,0 +1,344 @@
+# The claim graph.
+#
+# A model may not turn a product description into a marketing claim. It may only
+# assemble claims from this file, by id. `scripts/check-claims.mjs` fails the
+# build when a page cites an id that is missing, prohibited, pending, or stale.
+#
+# This is the generalisation of scripts/check-forbidden-words.mjs. That script
+# catches a bad phrase. This one catches a true-sounding sentence that nothing
+# in the repository supports — which is the more common and more expensive
+# failure, and the one that produced the FTC's accessiBe order.
+#
+# status:
+#   verified   — evidence exists in this repository and is named below
+#   pending    — will be true, is not yet; may not appear on any page
+#   prohibited — must never appear, with the reason recorded
+
+version: 1
+reviewed_on: 2026-08-11
+
+claims:
+  # ------------------------------------------------------------- what it is --
+  - id: C001
+    text: Attest is a CI check for React and Next.js codebases.
+    status: verified
+    evidence:
+      - packages/cli/src/commands/scan.ts
+      - packages/action/action.yml
+    scope: React and Next.js only
+
+  - id: C002
+    text: >-
+      Attest reports what a pull request changed, rather than listing everything
+      wrong with the codebase.
+    status: verified
+    evidence:
+      - packages/core/src/diff.ts
+      - packages/cli/test/e2e.test.ts::survives an unrelated edit above a finding
+
+  - id: C003
+    text: >-
+      Findings are fingerprinted without line numbers, so adding an import at
+      the top of a file does not report the findings below it as new.
+    status: verified
+    evidence:
+      - packages/core/src/identity.ts
+      - packages/cli/test/e2e.test.ts::survives an unrelated edit above a finding
+    note: This is the property the semantic diff rests on and it is under test.
+
+  - id: C004
+    text: Attest ships 30 rules across four layers.
+    status: verified
+    evidence:
+      - packages/cli/src/rules.ts
+      - scripts/check-rule-docs.mjs
+    freshness: Recount on every rule change; the docs check enforces the number.
+
+  # ------------------------------------------------------ accessibility ------
+  - id: C010
+    text: >-
+      Runtime accessibility detection is performed by axe-core, developed and
+      maintained by Deque Systems, used under the Mozilla Public License 2.0.
+      Attest wraps axe-core; it does not fork or modify it.
+    status: verified
+    evidence:
+      - packages/rules-a11y/src/runtime/context.ts
+      - LICENSE
+    required_on: any page showing an accessibility finding
+    note: Both a licence obligation and the reason practitioners will listen.
+
+  - id: C011
+    text: >-
+      Automated tooling can evaluate roughly a quarter to a third of WCAG 2.1
+      success criteria.
+    status: verified
+    qualifier: stated as a range on purpose
+    evidence:
+      - docs/what-attest-cannot-detect.md
+      - packages/core/src/product.ts::AUTOMATED_COVERAGE_NOTE
+    note: >-
+      Published estimates vary by methodology and we have not run our own study.
+      A precise percentage would be a number we cannot defend.
+
+  - id: C012
+    text: >-
+      The 14 runtime accessibility rules are tested against a real browser
+      loading real pages, not against fixtures alone.
+    status: verified
+    evidence:
+      - packages/rules-a11y/test/runtime-fixtures.test.ts
+
+  - id: C013
+    text: >-
+      Where axe-core classifies a rule as a best practice rather than a WCAG
+      requirement, Attest labels it the same way.
+    status: verified
+    evidence:
+      - packages/rules-a11y/src/runtime/rules.ts::a11y/heading-order
+      - packages/rules-a11y/test/static-fixtures.test.ts::never claims a WCAG criterion for an axe best-practice rule
+
+  # ----------------------------------------------------------- the graph -----
+  - id: C020
+    text: >-
+      A 'use client' directive marks a boundary, not a file. Everything a client
+      module imports also ships to the browser, however many hops away.
+    status: verified
+    evidence:
+      - packages/core/src/static/client-graph.ts
+    scope: Next.js App Router and Pages Router
+
+  - id: C021
+    text: >-
+      Scanning vercel/commerce at commit 3761e52 found that lib/utils.ts, which
+      contains no 'use client' directive, reaches the browser through
+      components/cart/modal.tsx and reads process.env.VERCEL_PROJECT_PRODUCTION_URL
+      — which is undefined in the client bundle.
+    status: verified
+    evidence:
+      - gtm/public-scans/reports/commerce.json
+      - gtm/public-scans/2026-08-vercel-commerce.md
+    hash: sha256:b1b8c3b98a1b3622
+    reproducible: true
+    note: >-
+      Whether it is a live bug depends on whether client code reads baseUrl. The
+      page must say so; "real, currently benign, and a trap for the next person"
+      is the honest framing and it is more credible than the alternative.
+
+  - id: C022
+    text: >-
+      A fetch that sends a per-session credential and also carries a caching
+      directive stores its response in the Next.js Data Cache, which is keyed by
+      URL and request options rather than by user.
+    status: verified
+    evidence:
+      - packages/rules-privacy/src/rules/session-data-in-shared-cache.ts
+      - docs/rules/privacy-session-data-in-shared-cache.md
+    scope: Next.js App Router
+    note: The rule requires both signals on the same call before it reports.
+
+  - id: C023
+    text: >-
+      Scanning vercel/ai-chatbot at commit c2f8235 found two operations in a
+      route handler that the response does not wait for, one of which is a
+      database write.
+    status: verified
+    evidence:
+      - gtm/public-scans/reports/ai-chatbot.json
+      - gtm/public-scans/2026-08-vercel-ai-chatbot.md
+    hash: sha256:1e5e8f784ce3ce6f
+
+  # -------------------------------------------------------- the trail --------
+  - id: C030
+    text: >-
+      Two scans of identical code produce an identical content hash on a
+      different machine, on a different branch, at a different time.
+    status: verified
+    evidence:
+      - packages/core/src/engine.ts::computeContentHash
+      - packages/cli/test/e2e.test.ts::hashes identical code identically
+
+  - id: C031
+    text: >-
+      Suppressed findings stay in the report with the reason the developer gave.
+    status: verified
+    evidence:
+      - packages/core/src/engine.ts
+      - packages/cli/test/e2e.test.ts::records a suppression instead of dropping the finding
+
+  - id: C032
+    text: >-
+      A layer that could not run is reported as "did not run", never as clean,
+      and the diff excludes layers that ran on only one side.
+    status: verified
+    evidence:
+      - packages/core/src/diff.ts
+      - packages/cli/test/e2e.test.ts::refuses to compare a layer that ran on only one side
+
+  - id: C033
+    text: >-
+      Attest refuses to read a report whose contents no longer match its own
+      hash.
+    status: verified
+    evidence:
+      - packages/core/src/report-io.ts
+      - packages/cli/test/e2e.test.ts::rejects a report whose contents no longer match its hash
+
+  # ------------------------------------------------------------ privacy ------
+  - id: C040
+    text: The CLI runs entirely on your machine and sends nothing anywhere.
+    status: verified
+    evidence:
+      - packages/cli/src
+      - gtm/legal/privacy-policy.md
+    note: >-
+      Verifiable by the reader: the source is MIT and there is no network code
+      outside the browser automation that loads URLs the user supplies.
+
+  - id: C041
+    text: >-
+      The CLI, every rule, the GitHub Action, SARIF output and the badge are MIT
+      licensed.
+    status: verified
+    evidence:
+      - LICENSE
+      - packages/cli/package.json
+
+  # ---------------------------------------------------------- our own work ---
+  - id: C050
+    text: >-
+      Running the scanner against three real repositories found two false
+      positives in Attest's own rules, both fixed, both with named regression
+      fixtures.
+    status: verified
+    evidence:
+      - "git log: 0b9c90f"
+      - DECISIONS.md::ADR-0017
+      - DECISIONS.md::ADR-0018
+      - fixtures/privacy/origin-capability-in-client-graph/server-types.ts
+      - fixtures/a11y-static/label-association/clean-wrappers.tsx
+    note: >-
+      This is the strongest trust asset the product currently has, because
+      nobody is required to publish it.
+
+  - id: C051
+    text: >-
+      Attest's own marketing site is scanned by Attest on every CI run, with all
+      four layers running against the rendered pages.
+    status: verified
+    evidence:
+      - .github/workflows/ci.yml::web
+      - apps/web/README.md
+
+  - id: C052
+    text: >-
+      Attest ships no overlay, widget, or runtime script, and never will.
+    status: verified
+    evidence:
+      - docs/what-attest-cannot-detect.md
+      - gtm/comparisons/vs-overlays.md
+
+  # ------------------------------------------------------------ regulatory ---
+  - id: C060
+    text: >-
+      The European Accessibility Act, Directive (EU) 2019/882, has applied since
+      28 June 2025.
+    status: verified
+    source: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32019L0882
+    legal_sensitivity: high
+    required_companion: C063
+
+  - id: C061
+    text: >-
+      EN 301 549 v3.2.1 is the current harmonised standard and incorporates
+      WCAG 2.1 Level AA. A v4.x incorporating WCAG 2.2 is drafted and not yet
+      referenced in the Official Journal.
+    status: verified
+    source: https://www.etsi.org/deliver/etsi_en/301500_301599/301549/
+    evidence:
+      - docs/regulatory-context.md
+    legal_sensitivity: high
+
+  - id: C062
+    text: >-
+      In January 2025 the US Federal Trade Commission ordered accessiBe to pay
+      $1,000,000 over claims that its AI-powered product could make websites
+      conform to WCAG 2.1 AA. The order was finalised in April 2025.
+    status: verified
+    source: https://www.ftc.gov/news-events/news/press-releases/2025/01/ftc-order-requires-online-marketer-pay-1-million-deceptive-claims-its-ai-product-could-make-websites
+    legal_sensitivity: high
+
+  - id: C063
+    text: This is not legal advice.
+    status: verified
+    required_on: any page mentioning the EAA, WCAG obligations, penalties or enforcement
+
+  # ------------------------------------------------------------- pending -----
+  - id: P001
+    text: Scan any public URL from the browser, with no install.
+    status: pending
+    requirement: >-
+      The hosted scanner does not exist. The runtime layer can do this
+      technically, but nothing is deployed. May not appear on any page, in any
+      tense, until it is running.
+    note: >-
+      This would be the strongest possible ungated first value and it is the
+      highest-leverage thing to build next. It is still not a thing we may say.
+
+  - id: P002
+    text: Historical trend tracking, signed evidence export, organisation policy.
+    status: pending
+    requirement: apps/api is written and tested but is not deployed.
+    allowed_wording: >-
+      May be described on the pricing page as not yet available, with no
+      purchase possible. May not be described as a feature you can use today.
+
+  - id: P003
+    text: LLM-proposed patches delivered as reviewable pull requests.
+    status: pending
+    requirement: Phase 4, blocked on revenue by design.
+
+  # ----------------------------------------------------------- prohibited ---
+  - id: X001
+    text: Attest makes you compliant / EAA-compliant / WCAG-compliant.
+    status: prohibited
+    reason: >-
+      False. Conformance is a determination about a whole service, normally
+      requiring human evaluation. This is the exact claim the FTC fined accessiBe
+      for. See C062.
+
+  - id: X002
+    text: Any customer count, logo, testimonial, or case study.
+    status: prohibited
+    reason: There are no customers. Manufacturing social proof is fraud.
+
+  - id: X003
+    text: Any quantified time or money saving.
+    status: prohibited
+    reason: >-
+      No evidence exists. "Save 20 hours a month" is the easiest sentence to
+      write and the hardest to defend.
+
+  - id: X004
+    text: Attest prevents lawsuits, regulatory action, or penalties.
+    status: prohibited
+    reason: Unsupportable and legally dangerous.
+
+  - id: X005
+    text: Complete, full, or 100% WCAG coverage.
+    status: prohibited
+    reason: Contradicts C011, which is the product's own stated limit.
+
+  - id: X006
+    text: A false-positive rate, precision, or accuracy figure.
+    status: prohibited
+    reason: >-
+      We have not measured one on a labelled corpus. Two false positives found
+      and fixed (C050) is a fact; a rate derived from it would be invented.
+
+  - id: X007
+    text: Comparative superlatives about competing products.
+    status: prohibited
+    reason: >-
+      axe is better at detection than we are and we say so. A superlative here
+      would be both false and the thing that gets us dismissed by the only
+      community that matters.
