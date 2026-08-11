@@ -52,7 +52,11 @@ const rule: Rule<StaticContext> = {
   standards: [PROPERTIES.originConfinement],
   fixtures: {
     triggering: ['fixtures/privacy/origin-capability-in-client-graph/db.ts'],
-    clean: ['fixtures/privacy/origin-capability-in-client-graph/clean-server.ts'],
+    clean: [
+      'fixtures/privacy/origin-capability-in-client-graph/clean-server.ts',
+      // Imported by a client component, but only with `import type`.
+      'fixtures/privacy/origin-capability-in-client-graph/server-types.ts',
+    ],
   },
   check(ctx: StaticContext): RawFinding[] {
     const findings: RawFinding[] = []

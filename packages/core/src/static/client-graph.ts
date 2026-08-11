@@ -1,4 +1,4 @@
-import { Node, type SourceFile } from 'ts-morph'
+import { Node, type ImportDeclaration, type SourceFile } from 'ts-morph'
 import { toRelative, type StaticProject } from './project.js'
 
 /**
@@ -105,14 +105,46 @@ export function leadingDirective(file: SourceFile): 'use client' | 'use server' 
 function importedFiles(file: SourceFile): SourceFile[] {
   const out: SourceFile[] = []
   for (const decl of file.getImportDeclarations()) {
+    if (isTypeOnlyImport(decl)) continue
     const target = decl.getModuleSpecifierSourceFile()
     if (target && !target.isDeclarationFile()) out.push(target)
   }
   for (const decl of file.getExportDeclarations()) {
+    if (decl.isTypeOnly()) continue
     const target = decl.getModuleSpecifierSourceFile()
     if (target && !target.isDeclarationFile()) out.push(target)
   }
   return out
+}
+
+/**
+ * Type-only imports are erased before bundling, so they are not edges in the
+ * client graph.
+ *
+ * Getting this wrong is expensive in one direction only. A `lib/types.ts` that
+ * does `import type { requestSuggestions } from './ai/tools/request-suggestions'`
+ * creates no runtime dependency at all — but follow that edge and every
+ * component importing a type from it appears to drag the database layer into the
+ * browser. That is a critical-severity false positive on correct code, on the
+ * exact pattern every well-organised TypeScript codebase uses, and it was found
+ * by running this against real repositories rather than against fixtures.
+ *
+ * Two forms count as erased:
+ *  - `import type { X } from './x'` — always removed.
+ *  - `import { type X, type Y } from './x'` with no default or namespace import.
+ *    TypeScript and SWC elide this when every specifier is type-only, which is
+ *    the configuration Next.js generates. Under `verbatimModuleSyntax` it would
+ *    instead be preserved as a side-effect import; we accept missing that case,
+ *    because a missed finding costs less than a false one.
+ */
+function isTypeOnlyImport(decl: ImportDeclaration): boolean {
+  if (decl.isTypeOnly()) return true
+  if (decl.getDefaultImport() || decl.getNamespaceImport()) return false
+
+  const named = decl.getNamedImports()
+  // A bare `import './side-effect'` has no specifiers and definitely ships.
+  if (named.length === 0) return false
+  return named.every((specifier) => specifier.isTypeOnly())
 }
 
 export function isPagesRouterFile(relativePath: string): boolean {

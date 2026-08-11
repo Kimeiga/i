@@ -31,9 +31,22 @@ export function isHtmlTag(tag: JsxTag): boolean {
   return /^[a-z][a-z0-9]*$/.test(name)
 }
 
+/**
+ * Matches a JSX tag against HTML element names, **case-sensitively**.
+ *
+ * The case sensitivity is the whole point. In JSX a lowercase name is a DOM
+ * element and a capitalised one is a component, and they are not
+ * interchangeable: `<Input />` is somebody's design-system wrapper that very
+ * likely sets an id, forwards a ref, and spreads props we cannot see.
+ *
+ * A case-insensitive match here reported 106 missing labels in one real
+ * repository, essentially all of them on `<Input>` components that were
+ * labelled correctly. That is the false positive that gets a tool uninstalled,
+ * so componenthood is decided by capitalisation, exactly as React decides it.
+ */
 export function isTag(tag: JsxTag, ...names: string[]): boolean {
-  const name = tagName(tag).toLowerCase()
-  return names.some((n) => n.toLowerCase() === name)
+  const name = tagName(tag)
+  return names.includes(name)
 }
 
 export function getAttribute(tag: JsxTag, name: string): JsxAttribute | undefined {

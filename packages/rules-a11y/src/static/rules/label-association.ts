@@ -48,7 +48,11 @@ const rule: Rule<StaticContext> = {
   standards: [WCAG.infoAndRelationships, WCAG.labelsOrInstructions, WCAG.nameRoleValue],
   fixtures: {
     triggering: ['fixtures/a11y-static/label-association/triggering.tsx'],
-    clean: ['fixtures/a11y-static/label-association/clean.tsx'],
+    clean: [
+      'fixtures/a11y-static/label-association/clean.tsx',
+      // Capitalised names are components, not DOM elements.
+      'fixtures/a11y-static/label-association/clean-wrappers.tsx',
+    ],
   },
   check(ctx: StaticContext): RawFinding[] {
     const findings: RawFinding[] = []
