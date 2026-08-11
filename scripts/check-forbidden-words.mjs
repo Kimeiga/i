@@ -9,9 +9,15 @@
  * packages/core/src/product.ts so the code, the docs and the marketing copy are
  * all constrained by the same source.
  *
- * Quoting someone else's forbidden claim — the FTC's accessiBe complaint, an
- * overlay vendor's own words — is legitimate and necessary. Mark those lines
- * with `claims-ok:` and a reason, on the line itself or the one above it.
+ * Two kinds of line legitimately contain a banned phrase: a quotation of someone
+ * else's claim (the FTC's accessiBe complaint, an overlay vendor's own words),
+ * and an explicit denial of one ("we are not SOC 2 certified"). Mark those with
+ * `claims-ok:` and a reason, on the line itself or the one above it.
+ *
+ * The check does not try to detect negation itself. A regex that understands
+ * "not" well enough to be trusted here does not exist, and a control that
+ * silently permits a class of sentence is not a control — an explicit marker
+ * with a written reason is.
  */
 
 import { readdir, readFile } from 'node:fs/promises'
@@ -57,8 +63,9 @@ if (problems.length > 0) {
     console.error('')
   }
   console.error('These phrases assert a compliance outcome the product does not deliver.')
-  console.error('Rewrite the sentence, or, if you are quoting someone else, add a')
-  console.error('`claims-ok: <reason>` comment on that line or the line above it.\n')
+  console.error('Rewrite the sentence. If you are quoting someone else, or explicitly')
+  console.error('denying the claim, add a `claims-ok: <reason>` comment on that line or')
+  console.error('the line above it.\n')
   process.exit(1)
 }
 
