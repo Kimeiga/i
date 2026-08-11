@@ -1,0 +1,91 @@
+name: 'Attest'
+description: >-
+  Report what changed about a pull request's accessibility conformance, privacy
+  boundaries and client cost. Attest reports automated checks; it does not
+  determine compliance.
+author: 'Attest'
+
+branding:
+  icon: 'check-square'
+  color: 'blue'
+
+inputs:
+  directory:
+    description: 'Directory to scan.'
+    required: false
+    default: '.'
+  urls:
+    description: >-
+      Newline-separated URLs to render and check with axe-core. Requires a
+      running application and a browser; leave empty for source-only checks.
+    required: false
+    default: ''
+  build-dir:
+    description: 'Next.js build output to measure. Defaults to .next when present.'
+    required: false
+    default: ''
+  fail-on:
+    description: 'minor | moderate | serious | critical | never'
+    required: false
+    default: 'serious'
+  fail-on-new-only:
+    description: >-
+      Only fail on findings that are not already present on the base branch.
+      This is the setting most existing codebases want on day one.
+    required: false
+    default: 'true'
+  comment:
+    description: 'Post or update a pull request comment with the semantic diff.'
+    required: false
+    default: 'true'
+  sarif-file:
+    description: >-
+      Write SARIF to this path. Upload it yourself with
+      github/codeql-action/upload-sarif if you want code scanning alerts.
+    required: false
+    default: ''
+  version:
+    description: 'Version of @attestci/cli to run.'
+    required: false
+    default: 'latest'
+  token:
+    description: 'Token used to post the pull request comment.'
+    required: false
+    default: ${{ github.token }}
+  working-directory:
+    description: 'Directory to run in.'
+    required: false
+    default: '.'
+
+outputs:
+  report:
+    description: 'Path to the head scan report JSON.'
+    value: ${{ steps.attest.outputs.report }}
+  diff:
+    description: 'Path to the semantic diff JSON, when a base scan was possible.'
+    value: ${{ steps.attest.outputs.diff }}
+  verdict:
+    description: 'regressed | improved | mixed | unchanged | unknown'
+    value: ${{ steps.attest.outputs.verdict }}
+  new-findings:
+    description: 'Count of findings introduced by this change.'
+    value: ${{ steps.attest.outputs.new-findings }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Attest
+      id: attest
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        ATTEST_DIRECTORY: ${{ inputs.directory }}
+        ATTEST_URLS: ${{ inputs.urls }}
+        ATTEST_BUILD_DIR: ${{ inputs.build-dir }}
+        ATTEST_FAIL_ON: ${{ inputs.fail-on }}
+        ATTEST_FAIL_ON_NEW_ONLY: ${{ inputs.fail-on-new-only }}
+        ATTEST_COMMENT: ${{ inputs.comment }}
+        ATTEST_SARIF_FILE: ${{ inputs.sarif-file }}
+        ATTEST_CLI_VERSION: ${{ inputs.version }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: node "$GITHUB_ACTION_PATH/src/run.mjs"

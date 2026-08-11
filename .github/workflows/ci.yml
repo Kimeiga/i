@@ -1,0 +1,85 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Runtime accessibility rules are tested against a real browser. Without
+      # this the suite skips them and prints why, which is honest but weaker.
+      - name: Install Chromium for the runtime accessibility tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        run: pnpm build
+
+      - name: Forbidden claims
+        run: pnpm lint:claims
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Rule documentation coverage
+        run: pnpm lint:rule-docs
+
+      # Proves the published entry point works from a clean shell, not just
+      # through the workspace.
+      - name: Smoke test the CLI
+        run: |
+          node packages/cli/dist/bin.js --version
+          node packages/cli/dist/bin.js rules > /dev/null
+          node packages/cli/dist/bin.js scan ./fixtures --fail-on never -q --json /tmp/attest-fixtures.json
+          node packages/cli/dist/bin.js badge /tmp/attest-fixtures.json > /dev/null
+
+  self-scan:
+    # Attest scanning Attest. This repository is not a Next.js app, so most
+    # rules find nothing — the point is that the tool runs end to end on a real
+    # checkout and the Action's own entry point works.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Run the action against this repository
+        env:
+          ATTEST_CLI_BIN: ${{ github.workspace }}/packages/cli/dist/bin.js
+          ATTEST_DIRECTORY: packages
+          ATTEST_FAIL_ON: serious
+          ATTEST_COMMENT: 'false'
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node packages/action/src/run.mjs

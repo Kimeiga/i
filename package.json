@@ -14,9 +14,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:claims": "node scripts/check-forbidden-words.mjs",
-    "lint:rule-docs": "node scripts/check-rule-docs.mjs",
-    "check": "pnpm lint:claims && pnpm build && pnpm test && pnpm lint:rule-docs",
-    "attest": "node packages/cli/dist/bin.js"
+    "lint:rule-docs": "node scripts/check-rule-docs.mjs && node scripts/generate-rule-docs.mjs --check",
+    "check": "pnpm build && pnpm lint:claims && pnpm test && pnpm lint:rule-docs",
+    "attest": "node packages/cli/dist/bin.js",
+    "docs:rules": "node scripts/generate-rule-docs.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
