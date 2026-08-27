@@ -1,0 +1,108 @@
+# The objective contract for the Attest marketing site.
+#
+# Written before any copy, so that a model asked to "improve the page" has an
+# outcome to improve rather than an aesthetic to imitate. Every page variant
+# declares which entry in this file it is built against.
+#
+# The rule this encodes: optimise qualified activation, not clicks. A page can
+# raise CTA clicks by hiding the price, broadening the promise, or attracting
+# people the product cannot help — all of which reduce contribution profit while
+# improving the metric.
+
+page_job:
+  type: self_serve_activation
+  product: attest
+  maturity: pre_launch # zero installs, zero customers, nothing published
+  awareness_by_source:
+    github_marketplace: solution_aware
+    branded_search: product_aware
+    eaa_search: problem_aware
+    public_scan_referral: problem_aware
+    hn_launch: unaware
+
+business_objective:
+  horizon_days: 90
+
+  # --------------------------------------------------------------------------
+  # The measurement conflict, stated rather than hidden.
+  #
+  # The doctrine says: pick a calibrated leading metric close to first value.
+  # For this product first value is `npx @attestci/cli scan .`, which runs
+  # entirely on the user's machine and reports nothing to us — deliberately, and
+  # advertised as such on the page and in the privacy policy.
+  #
+  # So the activation event we most want to count is the one we have promised
+  # never to observe. Adding CLI telemetry to fix the metric would trade the
+  # product's main trust claim for a dashboard number. We are not doing that.
+  #
+  # What we measure instead is the nearest observable event, and we accept that
+  # it is a proxy with known leakage.
+  # --------------------------------------------------------------------------
+  primary_leading_metric: github_action_installed_per_unique_visitor
+
+  measurable_proxies:
+    - install_command_copied # on-site, first-party, cookieless
+    - action_docs_reached
+    - sample_report_opened
+  unmeasurable_by_design:
+    - cli_scan_completed # no telemetry in the CLI, ever
+  public_but_uncalibrated:
+    - npm_download_count # coarse, includes CI and mirrors
+
+  downstream_metric: contribution_profit_per_unique_visitor
+  downstream_confirmation:
+    - repository_connected_to_hosted_service
+    - paid_conversion
+    - retained_90d
+
+  guardrails:
+    - paid_refund_rate
+    - support_minutes_per_activation
+    - accessibility_violations_on_own_site # must stay at zero
+    - core_web_vitals
+    - claim_lint_failures # must stay at zero
+    - unqualified_signups # people the product cannot help
+
+buyer:
+  role: staff frontend engineer, or the engineering manager who owns the frontend
+  company_size: 20-500
+  team_shape: no dedicated accessibility team
+  market: sells into the EU, or has a customer who asked about accessibility
+  stack: React or Next.js
+
+  triggering_events:
+    - a customer's procurement questionnaire asked about accessibility
+    - someone forwarded an article about the European Accessibility Act
+    - a complaint arrived
+    - an incident where cached data was served to the wrong user
+    - an accessibility audit is scheduled
+
+  current_workaround:
+    - the axe browser extension, run by whoever remembers
+    - eslint-plugin-jsx-a11y
+    - nothing
+    - a spreadsheet from a consultant's audit
+
+  purchase_anxieties:
+    - "does my source code leave my machine"
+    - "will this flood us with false positives"
+    - "is this another overlay"
+    - "does this actually claim to make us compliant, because that would be a lie"
+    - "how much of WCAG does it really cover"
+    - "who is behind this and will it exist in a year"
+
+offer:
+  primary: run the CLI locally, no account, no signup
+  secondary: read a real scan report of a repository you already know
+  # Deliberately NOT offered, because it does not exist:
+  #   - a hosted "scan any URL" service
+  #   - a free trial of the hosted tier (nothing is deployed)
+
+honesty_constraints:
+  # These are not tone preferences. They are the conditions under which the
+  # page is allowed to ship.
+  - no customer count, logo, testimonial or case study exists — do not imply one
+  - no time or money saving may be quantified — no evidence exists
+  - the hosted service is not deployed — describe it as not yet available
+  - every factual sentence must carry a claim id from claims.yaml
+  - the coverage limit appears above the fold, in body text, at body size

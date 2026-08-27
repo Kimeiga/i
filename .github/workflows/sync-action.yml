@@ -1,0 +1,63 @@
+name: sync-action
+
+# GitHub Marketplace only lists an action whose `action.yml` sits at the root of
+# its own repository. Sub-folder actions work when referenced directly —
+# `uses: owner/repo/packages/action@v1` — but are never listed.
+#
+# So the Action lives here, where it is developed and tested alongside the CLI
+# it drives, and is mirrored to a standalone repository for distribution. The
+# mirror is generated, never edited: a fix goes into packages/action and gets
+# pushed from here.
+#
+# Source: https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Skipped until ACTION_REPO_TOKEN exists. Nothing here can run before the
+    # organisation and the standalone repository do.
+    if: vars.ACTION_REPO != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble the standalone action repository
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/action-repo
+          cp -r packages/action/action.yml packages/action/src packages/action/README.md /tmp/action-repo/
+          cp LICENSE /tmp/action-repo/
+          cat > /tmp/action-repo/.github/NOTICE.md <<'NOTICE' || mkdir -p /tmp/action-repo/.github && cat > /tmp/action-repo/.github/NOTICE.md <<'NOTICE'
+          This repository is generated from packages/action in the Attest monorepo.
+          Do not edit it here — changes are overwritten on the next release.
+          Open issues and pull requests against the main repository instead.
+          NOTICE
+
+      - name: Push to the standalone repository
+        env:
+          TOKEN: ${{ secrets.ACTION_REPO_TOKEN }}
+          TARGET: ${{ vars.ACTION_REPO }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          cd /tmp/action-repo
+          git init -q
+          git config user.name  "attest-release"
+          git config user.email "release@attest.ci"
+          git add -A
+          git commit -q -m "release ${TAG} (generated from packages/action)"
+          git remote add origin "https://x-access-token:${TOKEN}@github.com/${TARGET}.git"
+          git push -f origin HEAD:main
+          git tag -f "${TAG}"
+          # The floating major tag is what users pin to. Moving it is the
+          # documented convention for actions and is why `@v1` keeps working.
+          git tag -f "${TAG%%.*}"
+          git push -f origin --tags

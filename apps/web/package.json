@@ -1,0 +1,26 @@
+{
+  "name": "@attestci/web",
+  "version": "0.1.0",
+  "description": "Landing page, documentation and dashboard. Proprietary.",
+  "private": true,
+  "license": "SEE LICENSE IN ../LICENSE",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@attestci/core": "workspace:*",
+    "marked": "^18.0.9",
+    "next": "^16.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

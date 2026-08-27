@@ -1,0 +1,42 @@
+{
+  "name": "@attestci/core",
+  "version": "0.1.0",
+  "description": "Rule engine, report schema, and semantic diff for Attest. Contains no rules of its own.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./static": {
+      "types": "./dist/static/index.d.ts",
+      "default": "./dist/static/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "prepublishOnly": "node ../../scripts/guard-publish.mjs"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "ts-morph": "^28.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

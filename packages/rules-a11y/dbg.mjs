@@ -1,0 +1,24 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {join} from 'node:path';
+const root = '/home/user/i/fixtures/a11y-runtime';
+const server = createServer((req,res)=>{
+  const p = (req.url ?? '/').split('?')[0];
+  readFile(join(root,p)).then(b=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(b)},()=>{res.writeHead(404);res.end('nf')});
+});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const base = 'http://127.0.0.1:'+server.address().port;
+const {chromium} = await import('playwright');
+const browser = await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const ctx = await browser.newContext();
+const page = await ctx.newPage();
+const resp = await page.goto(base+'/image-alt/triggering.html', {waitUntil:'load'});
+console.log('status', resp.status(), 'len', (await page.content()).length);
+const axe = await import('axe-core');
+const mod = axe.default ?? axe;
+console.log('axe source type', typeof mod.source, 'version', mod.version);
+await page.addScriptTag({content: mod.source});
+const tags = ['wcag2a','wcag2aa','wcag21a','wcag21aa','best-practice'];
+const out = await page.evaluate(([runTags]) => window.axe.run(document, {runOnly:{type:'tag',values:runTags}}), [tags]);
+console.log('violations:', out.violations.map(v=>v.id).join(','));
+await browser.close(); server.close();

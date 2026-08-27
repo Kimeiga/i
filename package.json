@@ -1,0 +1,28 @@
+{
+  "name": "attest-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "clean": "tsc -b tsconfig.build.json --clean && rm -rf packages/*/dist",
+    "typecheck": "tsc -b tsconfig.build.json --noEmit false --dry 2>/dev/null || tsc -b tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint:claims": "node scripts/check-forbidden-words.mjs && node scripts/check-claims.mjs",
+    "lint:rule-docs": "node scripts/check-rule-docs.mjs && node scripts/generate-rule-docs.mjs --check",
+    "check": "pnpm build && pnpm lint:claims && pnpm lint:pages && pnpm test && pnpm lint:rule-docs",
+    "attest": "node packages/cli/dist/bin.js",
+    "docs:rules": "node scripts/generate-rule-docs.mjs",
+    "lint:pages": "node scripts/score-page.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

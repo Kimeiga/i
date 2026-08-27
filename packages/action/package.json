@@ -1,0 +1,10 @@
+{
+  "name": "@attestci/action",
+  "version": "0.1.0",
+  "description": "GitHub Action that runs Attest on a pull request and comments with the semantic diff.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "files": ["action.yml", "src", "README.md"],
+  "engines": { "node": ">=22" }
+}
