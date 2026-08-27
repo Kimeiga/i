@@ -114,19 +114,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
+      - name: Typecheck the Worker
+        run: pnpm --filter @attestci/web typecheck:worker
       - name: Build the site
         run: pnpm --filter @attestci/web build
-      - name: Scan the site, including the rendered pages
-        run: |
-          pnpm --filter @attestci/web start -- -p 3111 &
-          npx --yes wait-on -t 60000 http://127.0.0.1:3111/
-          node packages/cli/dist/bin.js scan apps/web --fail-on moderate \
-            --url http://127.0.0.1:3111/ \
-            --url http://127.0.0.1:3111/pricing \
-            --url http://127.0.0.1:3111/dashboard \
-            --url http://127.0.0.1:3111/for/github \
-            --url http://127.0.0.1:3111/for/eaa \
-            --url http://127.0.0.1:3111/compare \
-            --url http://127.0.0.1:3111/v1 \
-            --url http://127.0.0.1:3111/scans \
-            --url http://127.0.0.1:3111/docs/what-attest-cannot-detect
+      # Serves the export through `wrangler dev` — the real Worker, the real
+      # asset routing, the real `_headers` and `_redirects` — and scans that.
+      # `next start` would have tested a Node server the deployed site does not
+      # have, and would have applied config a static export ignores.
+      - name: Scan the exported site, including the rendered pages
+        run: node scripts/scan-exported-site.mjs

@@ -1,0 +1,21 @@
+{
+  // The Worker is typechecked separately from the Next app.
+  //
+  // They run in different places and see different globals: the app's tsconfig
+  // has `lib: ["dom"]`, the Worker has Cloudflare's runtime types. Sharing one
+  // tsconfig would mean either the Worker cannot see `Fetcher` or the app can
+  // see globals that do not exist in a browser, and both of those are the kind
+  // of quiet mistake types are supposed to prevent.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true
+  },
+  "include": ["./*.ts"]
+}

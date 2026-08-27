@@ -350,3 +350,38 @@ spend is logged per account from the first call.
 cannot be defended to a maintainer, put in an evidence trail, or reproduced by a
 third party — and one hallucinated finding in a public scan would end the
 programme.
+
+---
+
+## ADR-0021 — The site is a static export served by a Cloudflare Worker
+
+**Date:** 2026-08-27 · **Status:** accepted
+
+`apps/web` ships as `output: 'export'` — 55 HTML files — behind a Worker whose
+only job is `POST /api/e`. Everything else is `env.ASSETS.fetch(request)`.
+`vercel.json` is deleted.
+
+**Why:** Vercel's Hobby plan prohibits commercial use, so hosting the site there
+costs $20/month per seat — $240/year, 12% of the entire $2,000 spend cap, before
+a single visitor exists. 54 of the 55 routes were already prerendered, so almost
+nothing was being bought with that. On Workers, static asset requests are free
+and unlimited and only `/api/e` can invoke code, so the recurring cost is $0.
+
+**Consequence, and the part that bit:** a static export ignores `headers()` and
+`redirects()` in `next.config.ts`. Both moved to `public/_headers` and
+`public/_redirects`, which means the CSP, HSTS and the one redirect are now
+enforced by files that `next dev` and `next start` do not read. A check that
+started `next start` would have passed while the deployed site served no security
+headers at all.
+
+So `scripts/scan-exported-site.mjs` serves the export through `wrangler dev` —
+the real Worker, the real asset routing, the real `_headers` — asserts the
+headers, the redirect and the 404 page are actually applied, and only then runs
+the four-layer scan. CI and the deploy workflow both call it, and deployment is
+gated on it.
+
+**Also consequent:** the event sink is now Worker code rather than a Next route
+handler. It still constructs the stored record field by field rather than
+spreading the request body, because the privacy policy claims nothing else is
+collected and a spread is how that claim becomes false without anyone editing it.
+Verified locally: a request carrying an extra field had it dropped.

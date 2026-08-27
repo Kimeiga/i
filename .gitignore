@@ -13,4 +13,4 @@ attest-report.json
 attest-report.sarif
 *.log
 .vitest-cache/
-apps/web/.vercel/
+.wrangler/

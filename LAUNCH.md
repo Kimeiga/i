@@ -87,15 +87,30 @@ again. Run the dry run first.
 The docs are the product's surface area and currently exist only in this
 repository.
 
-- **Deploy `apps/web`.** [`vercel.json`](vercel.json) is written: build from the
-  repo root, output `apps/web/.next`, with CSP and HSTS headers set.
+- **Deploy `apps/web`.** Done, apart from the credentials. The site is now a
+  **static export served by a Cloudflare Worker** — 55 exported HTML files plus
+  [`worker/index.ts`](apps/web/worker/index.ts) for the one dynamic route.
+  [`apps/web/wrangler.jsonc`](apps/web/wrangler.jsonc) is written and verified
+  locally against the real runtime.
 
-  **But Vercel's Hobby plan prohibits commercial use**, so a business site there
-  costs $20/month per seat — $240/year, or 12% of the whole cap, spent on
-  deployment convenience before a single visitor exists. 54 of the site's 55
-  routes are prerendered and the one dynamic route is an event sink that is off
-  by default, so it can be hosted free on Cloudflare Pages, GitHub Pages or
-  Netlify, all of which permit commercial use on their free tiers. Start there.
+  Two commands, from a machine with a Cloudflare account:
+
+  ```bash
+  pnpm --filter @attestci/web exec wrangler login
+  pnpm --filter @attestci/web deploy
+  ```
+
+  That gives a `*.workers.dev` URL immediately, free, with commercial use
+  permitted. After that, set the `CLOUDFLARE_API_TOKEN` secret and the
+  `CLOUDFLARE_ACCOUNT_ID` variable and
+  [`deploy.yml`](.github/workflows/deploy.yml) does it on every push to `main` —
+  gated on the site passing its own four-layer scan first.
+
+  **Why not Vercel:** its Hobby plan prohibits commercial use, so a business site
+  there costs $20/month per seat — $240/year, or 12% of the whole cap, spent on
+  deployment convenience before a single visitor exists. `vercel.json` has been
+  deleted rather than left to rot: it pointed at `apps/web/.next`, which the
+  static export no longer produces.
 - **Set up `support@` and `security@`.** Forwarding addresses are fine. An
   unmonitored address is worse than none, and the [support
   system](gtm/support.md) already promises best-effort email and nothing more.

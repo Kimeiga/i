@@ -1,0 +1,41 @@
+{
+  // The site as a Cloudflare Worker with static assets.
+  //
+  // Why this rather than Vercel: Vercel's Hobby plan prohibits commercial use,
+  // so a business site there is $20/month per seat — $240/year, 12% of the
+  // whole $2,000 spend cap, paid for deployment convenience before a single
+  // visitor exists. This site is 54 prerendered routes and one event sink, so
+  // it fits a free tier that does permit commercial use. See gtm/costs.md.
+  //
+  // Why Workers rather than Pages: Pages is in maintenance mode for new
+  // projects and the one dynamic route needs code in front of the assets
+  // anyway. Workers with static assets is the supported path and gets the
+  // `_headers` and `_redirects` files natively.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "attest",
+  "compatibility_date": "2026-08-27",
+  "main": "./worker/index.ts",
+
+  "assets": {
+    // Produced by `next build` with `output: 'export'` in next.config.ts.
+    "directory": "./out",
+    "binding": "ASSETS",
+
+    // Requests that match no file get the nearest 404.html rather than a bare
+    // status line. Next's export writes one.
+    "not_found_handling": "404-page",
+
+    // `next.config.ts` sets `trailingSlash: true`, so every route is exported
+    // as `route/index.html`. The default resolves those with a trailing slash,
+    // which is the same shape, so the two configurations agree and no request
+    // takes a redirect it did not need.
+    "html_handling": "auto-trailing-slash"
+  },
+
+  // Only the event sink reaches Worker code, and it logs one record per call.
+  // Without this the logs go nowhere, and an endpoint whose entire purpose is
+  // to record something should not silently record nothing.
+  "observability": {
+    "enabled": true
+  }
+}

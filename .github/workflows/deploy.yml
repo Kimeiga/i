@@ -1,0 +1,63 @@
+name: deploy
+
+# Deploys the site to Cloudflare Workers with static assets.
+#
+# The site must pass its own scan before it can be deployed. That ordering is
+# the point: an accessibility tool that shipped an inaccessible site would
+# refute its own argument, and a gate that runs after deployment is not a gate.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/core/**'
+      - 'docs/**'
+      - 'gtm/public-scans/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Without the token the deploy would fail with an authentication error that
+    # looks like a broken pipeline rather than a missing secret. Skipping says
+    # what is actually true: nothing is configured to deploy to yet.
+    if: vars.CLOUDFLARE_ACCOUNT_ID != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - run: pnpm --filter @attestci/web typecheck:worker
+      - run: pnpm --filter @attestci/web build
+
+      # The same four-layer scan the `web` job in ci.yml runs, against the
+      # exported files served by the real Worker. If this fails, nothing ships.
+      - name: Scan the exported site
+        run: node scripts/scan-exported-site.mjs
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: deploy

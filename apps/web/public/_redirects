@@ -1,0 +1,2 @@
+# Rule notes are prose spliced into generated rule pages, not pages themselves.
+/docs/rules/notes/* /docs/rules/ 302

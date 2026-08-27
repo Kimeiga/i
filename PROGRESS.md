@@ -1,6 +1,6 @@
 # Progress
 
-**Updated:** 2026-08-11
+**Updated:** 2026-08-27
 
 ---
 
@@ -68,11 +68,13 @@ generated docs page. CI fails if any of those is missing or stale.
 semantic (ten lines added above a finding report zero new findings) and the
 evidence suite that proves a broken hash chain names the record that broke it.
 
-**Seven CI gates**: build, forbidden-claims, claim graph, page rubric, tests,
-docs coverage, and a smoke test that packs the packages and installs them into a
-clean project. The last one earned its place immediately — it found that
-`npm pack` leaves `workspace:*` unresolved and produces a tarball nobody can
-install, which the workspace build, the types and 69 passing tests all missed.
+**Eight CI gates**: build, forbidden-claims, claim graph, page rubric, tests,
+docs coverage, the site's own four-layer scan against the deployed form, and a
+smoke test that packs the packages and installs them into a clean project.
+
+That last one earned its place immediately — it found that `npm pack` leaves
+`workspace:*` unresolved and produces a tarball nobody can install, which the
+workspace build, the types and 69 passing tests all missed.
 
 **The hosted service**: append-only Postgres schema with the constraint enforced
 by a database trigger, hash-chained records, Ed25519-signed exports verifiable
@@ -81,8 +83,20 @@ a conformance level.
 
 **The site**: landing page, docs rendered from the repository's own markdown, the
 three public scan pages, and a dashboard. It passes its own scan with all four
-layers running — 14 runtime rules over 4 rendered pages, zero findings — and CI
+layers running — 14 runtime rules over 9 rendered pages, zero findings — and CI
 enforces that.
+
+It is now a **static export served by a Cloudflare Worker** (ADR-0021): 55 HTML
+files plus 40 lines of Worker code for the one dynamic route. Free tier, and
+commercial use permitted, against $240/year on Vercel. `apps/web/wrangler.jsonc`
+is written and verified locally against the real runtime; deploying needs a
+Cloudflare login and one command.
+
+The conversion moved the CSP, HSTS and the one redirect out of `next.config.ts`,
+which a static export ignores, into `public/_headers` and `public/_redirects`.
+`scripts/scan-exported-site.mjs` serves the export through `wrangler dev` and
+asserts those are actually applied before it scans — a check against `next start`
+would have passed while the deployed site sent no security headers at all.
 
 **All GTM deliverables written**: positioning, three real public scan pages, launch
 drafts for five venues, four comparison pages, outreach templates, legal templates,
@@ -126,6 +140,13 @@ Everything after that is downstream of a working install.
 **The employment agreement.** Unknown until read. Everything else is downstream.
 
 **Nothing is published.** The whole Phase 2 gate is unmeasurable until it is.
+
+**The site is configured to deploy but has not been deployed.** Everything needed
+is in the repository and verified locally; what is missing is a Cloudflare login,
+which is a credential and therefore founder-only. One command
+(`pnpm --filter @attestci/web deploy`) produces a live `*.workers.dev` URL, and
+setting `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the repository
+makes it automatic on every push to `main`.
 
 **The domain is a placeholder.** `attest.ci` appears in the code and docs and has
 not been bought. It is one constant (`PRODUCT_URL`), but every published docs

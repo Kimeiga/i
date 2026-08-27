@@ -66,19 +66,33 @@ Pro at **$20/month per seat = $240/year**. An earlier draft of `LAUNCH.md` said
 hosting was ~$0; that was wrong for a commercial project on Vercel and is
 corrected here.
 
-The escape is that **this site is essentially static**: 54 of its 55 routes are
+The escape is that **this site is essentially static**: 54 of its 55 routes were
 prerendered at build time. The only dynamic route is `/api/e`, the first-party
 event sink, which is disabled unless `NEXT_PUBLIC_ATTEST_EVENTS=1` and is not
 enabled in this repository.
+
+So the site was converted to a full static export (`output: 'export'`) served by
+a Cloudflare Worker, with that one route handled by 40 lines of Worker code. The
+free Workers tier permits commercial use, and **requests to static assets are
+free and unlimited** — only requests that actually invoke Worker code count
+against the quota. Here that is `/api/e` alone, and it is off. **The realistic
+recurring hosting cost is $0 and stays $0 well past any traffic this launch will
+produce.**
+
+The free tier's limits, for when they matter *(verified against Cloudflare's
+published limits, 2026-08-27)*: 100,000 Worker requests/day, 10 ms CPU per
+invocation, 3 MB Worker script, 20,000 static asset files at 25 MiB each, 100
+`_headers` rules, 2,100 `_redirects` rules. This site is 55 HTML files, one
+header rule, one redirect rule, and a handler that parses a small JSON body.
 
 So the realistic options:
 
 | Option | Cost | Notes |
 | --- | --- | --- |
-| Cloudflare Pages / Workers | **$0** | Free tier permits commercial use |
+| **Cloudflare Workers** *(chosen, configured)* | **$0** | Free tier permits commercial use. `apps/web/wrangler.jsonc` |
 | GitHub Pages | **$0** | Free, commercial use permitted, needs a static export |
 | Netlify free tier | **$0** | Check current commercial terms |
-| Vercel Pro | **$240/yr** | Best Next.js integration; `vercel.json` is already written |
+| Vercel Pro | **$240/yr** | Best Next.js integration, and not worth $240 for a site that is 55 files |
 
 **Recommendation: start free elsewhere, move to Vercel Pro only if the deployment
 friction becomes real.** $240/year is 12% of the entire cap spent on convenience
