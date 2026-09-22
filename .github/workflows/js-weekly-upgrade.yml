@@ -24,7 +24,7 @@ jobs:
       - name: Update toolchain
         run: |
           node -e "const fs=require('fs'); const p=require('./package.json'); p.engines={...(p.engines||{}),node:'>=22.12.0'}; fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
-          pnpm add -D 'vitest@^5.0.1' 'vite@^8.3.0' 'typescript@7.0.2'
+          pnpm add -Dw 'vitest@^5.0.1' 'vite@^8.3.0' 'typescript@7.0.2'
       - name: Validate
         run: pnpm check
       - name: Commit generated dependency update
