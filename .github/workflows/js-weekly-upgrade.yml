@@ -1,0 +1,34 @@
+name: Apply JS Weekly TypeScript and Vitest update
+
+on:
+  push:
+    branches:
+      - chore/js-weekly-toolchain
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: corepack enable
+      - name: Update toolchain
+        run: |
+          node -e "const fs=require('fs'); const p=require('./package.json'); p.engines={...(p.engines||{}),node:'>=22.12.0'}; fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          pnpm add -D 'vitest@^5.0.1' 'vite@^8.3.0' 'typescript@7.0.2'
+      - name: Validate
+        run: pnpm check
+      - name: Commit generated dependency update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/js-weekly-upgrade.yml
+          git add package.json pnpm-lock.yaml
+          git commit -m "chore: update TypeScript and Vitest"
+          git push origin HEAD:chore/js-weekly-toolchain
