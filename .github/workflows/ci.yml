@@ -31,7 +31,7 @@ jobs:
       # Runtime accessibility rules are tested against a real browser. Without
       # this the suite skips them and prints why, which is honest but weaker.
       - name: Install Chromium for the runtime accessibility tests
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @attestci/rules-a11y exec playwright install --with-deps chromium
 
       - name: Build
         run: pnpm build
@@ -106,7 +106,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @attestci/rules-a11y exec playwright install --with-deps chromium
       - run: pnpm build
       - name: Build the site
         run: pnpm --filter @attestci/web build
