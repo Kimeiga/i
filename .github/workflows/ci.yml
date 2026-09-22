@@ -112,7 +112,7 @@ jobs:
         run: pnpm --filter @attestci/web build
       - name: Scan the site, including the rendered pages
         run: |
-          pnpm --filter @attestci/web start -- -p 3111 &
+          pnpm --filter @attestci/web exec next start -p 3111 &
           npx --yes wait-on -t 60000 http://127.0.0.1:3111/
           node packages/cli/dist/bin.js scan apps/web --fail-on moderate \
             --url http://127.0.0.1:3111/ \
