@@ -33,7 +33,7 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @attestci/rules-a11y exec playwright install --with-deps chromium
       - run: pnpm check
 
       - name: Version consistency
