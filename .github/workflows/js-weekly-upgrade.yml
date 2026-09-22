@@ -24,7 +24,9 @@ jobs:
       - name: Update toolchain
         run: |
           node -e "const fs=require('fs'); const p=require('./package.json'); p.engines={...(p.engines||{}),node:'>=22.12.0'}; fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('tsconfig.base.json','utf8')); p.compilerOptions.types=['node']; fs.writeFileSync('tsconfig.base.json',JSON.stringify(p,null,2)+'\n')"
           pnpm add -Dw 'vitest@^5.0.1' 'vite@^8.3.0' 'typescript@7.0.2'
+          pnpm install --frozen-lockfile
       - name: Validate
         run: pnpm check
       - name: Commit generated dependency update
@@ -32,6 +34,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/js-weekly-upgrade.yml
-          git add package.json pnpm-lock.yaml
+          git add package.json pnpm-lock.yaml tsconfig.base.json
           git commit -m "chore: update TypeScript and Vitest"
           git push origin HEAD:chore/js-weekly-toolchain
